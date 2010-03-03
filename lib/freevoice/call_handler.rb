@@ -126,6 +126,10 @@ module Freevoice
       end
     end
 
+    def cancel_all_timers
+      @timers.values.each {|t| t[0].cancel }
+    end
+
     def stop_timer(name)
       if @timers[name]
         timer = @timers.delete(name)
@@ -143,7 +147,7 @@ module Freevoice
 
     def cleanup
       break! if @state == :executing
-      @timers.values.each {|t| t[0].cancel }
+      cancel_all_timers
       clear_observers!
     end
 
