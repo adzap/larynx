@@ -83,7 +83,7 @@ module Freevoice
     end
 
     def execute(command, immediately=false)
-      log "Queued command: #{command.command}"
+      log "Queued command: #{command.name}"
       if immediately
         @queue.unshift command
         execute_next_command
@@ -120,14 +120,14 @@ module Freevoice
 
       case
       when @response.reply? && current_command.is_a?(ApiCommand)
-        log "Completed: #{current_command.command}"
+        log "Completed: #{current_command.name}"
         finalize_command
         execute_next_command
       when @response.executing?
         log "Executing: #{current_command.name}"
         @state = :executing
       when @response.executed? && current_command
-        log "Finished: #{current_command.command}"
+        log "Finished: #{current_command.name}"
         finalize_command
         execute_next_command unless last_command.command == 'break'
         @state = :ready
