@@ -2,6 +2,7 @@ require 'rubygems'
 require 'eventmachine'
 require 'active_support'
 
+require 'freevoice/eventmachine'
 require 'freevoice/observable'
 require 'freevoice/parser'
 require 'freevoice/session'
