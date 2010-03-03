@@ -61,21 +61,12 @@ module Freevoice
         prompt = @prompt_queue[@attempt-1] || @prompt_queue.last
         call.clear_input
         call.send(prompt[:method], prompt[:message], :bargein => prompt[:bargein]) {
-          call.timer(prompt[:timeout]) {
-            @app.send("#{@name}=", input)
-            if valid?
-              fire_callback(:success)
-            else
-              fire_callback(:invalid)
-              if @attempt < @options[:attempts]
-                @attempt += 1
-                next_prompt
-              else
-                fire_callback(:failure)
-                finalise
-              end
-            end
-          }
+          # checks if input during speech/playback has completed input
+          if finished_input?
+            evaluate_input
+          else
+            call.timer(prompt[:timeout]) { evaluate_input }
+          end
         }
         @current_prompt = prompt
       end
@@ -116,6 +107,22 @@ module Freevoice
         end
       end
 
+      def evaluate_input
+        @app.send("#{@name}=", input)
+        if valid?
+          fire_callback(:success)
+        else
+          fire_callback(:invalid)
+          if @attempt < @options[:attempts]
+            @attempt += 1
+            next_prompt
+          else
+            fire_callback(:failure)
+            finalise
+          end
+        end
+      end
+
       def maximum_length
         @options[:max_length] || @options[:length]
       end
@@ -132,8 +139,12 @@ module Freevoice
         @current_prompt[:termchar]
       end
 
+      def finished_input?
+        call.input.last == terminator || input.size == maximum_length
+      end
+
       def dtmf_received(digit)
-        if digit == terminator || input.size == maximum_length
+        if finished_input?
           call.cancel_timer
         end
       end
