@@ -30,21 +30,8 @@ module Freevoice
       execute AppCommand.new('phrase', text, options, &block)
     end
 
-    # def prompt(options={}, &block)
-    #   options.reverse_merge!(:bargein => true, :timeout => 10, :interdigit_timeout => 2, :termchar => '#')
-    #   method = *([:play, :speak, :phrase] & options.keys)
-    #   send(method, options[method], :bargein => options[:bargein]) {
-    #     if prompt_finished?(options)
-    #       block.call
-    #     else
-    #       # timer(:digit, options[:interdigit_timeout], &block)
-    #       timer(:input, options[:timeout], &block)
-    #     end
-    #   }
-    # end
-
-    def prompt_finished?(options)
-      input.last == options[:termchar] || input.size == (options[:max_length] || options[:length])
+    def prompt(options={}, &block)
+      Prompt.new(self, options, &block).execute
     end
 
     def post_init

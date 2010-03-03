@@ -7,9 +7,10 @@ require 'freevoice/observable'
 require 'freevoice/parser'
 require 'freevoice/session'
 require 'freevoice/response'
-require 'freevoice/application'
-require 'freevoice/fields'
 require 'freevoice/command'
+require 'freevoice/prompt'
+require 'freevoice/fields'
+require 'freevoice/application'
 require 'freevoice/call_handler'
 
 module Freevoice
