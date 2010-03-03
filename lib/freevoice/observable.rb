@@ -10,6 +10,10 @@ module Freevoice
       @observers.delete(object)
     end
 
+    def clear_observers!
+      @observers = []
+    end
+
     # Like an observer stack which only notifies top observer
     def notify_current_observer(event, data=nil)
       return unless @observers
