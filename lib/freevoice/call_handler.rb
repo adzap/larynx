@@ -31,10 +31,9 @@ module Freevoice
     end
 
     def post_init
-      log "Call received!"
       @queue, @input = [], []
       @state = :initiated
-      connect.on_response {
+      connect {
         @state = :connected
         start_session
       }
@@ -43,10 +42,12 @@ module Freevoice
 
     def start_session
       @session = Session.new(@response.header)
+      log "Call received from #{@response.header[:caller_caller_id_number]}"
       subscribe_to_events {
         filter_events {
           linger_for_events
           answer {
+            log 'Answered call'
             @state = :ready
             Freevoice.answer_block.call(self) if Freevoice.answer_block
           }
@@ -68,24 +69,34 @@ module Freevoice
     end
 
     def break!
-      cmd = AppCommand.new('break')
-      @queue.unshift cmd
-      send_data cmd.to_s
+      execute AppCommand.new('break'), true
+    end
+
+    def interrupt_command
+      if @state == :executing && current_command.interruptable?
+        break!
+      end
     end
 
     def clear_input
       @input = []
     end
 
-    def execute(command)
-      @queue << command
+    def execute(command, immediately=false)
+      log "Queued command: #{command.command}"
+      if immediately
+        @queue.unshift command
+        execute_next_command
+      else
+        @queue << command
+      end
       command
     end
 
     def timer(timeout, &block)
       @timer = [EM::Timer.new(timeout) {
         block.call
-        notify_observers :timed_out
+        notify_current_observer :timed_out
         execute_next_command if @state == :ready
         @timer = nil
       }, block]
@@ -107,35 +118,29 @@ module Freevoice
     def receive_request(header, content)
       @response = Response.new(header, content)
 
-      log "RECEIVED\n" + @response.header[:content_type]
-      if @response.event?
-        log @response.event_name
-        log @response.command_name
-      end
-      log "\n"
-
       case
       when @response.reply? && current_command.is_a?(ApiCommand)
+        log "Completed: #{current_command.command}"
         finalize_command
         execute_next_command
       when @response.executing?
+        log "Executing: #{current_command.name}"
         @state = :executing
-      when @response.executed?
+      when @response.executed? && current_command
+        log "Finished: #{current_command.command}"
         finalize_command
-        execute_next_command
+        execute_next_command unless last_command.command == 'break'
         @state = :ready
       when @response.dtmf? || @response.speech?
+        log "Button pressed: #{@response.body[:dtmf_digit]}"
         @input << @response.body[:dtmf_digit]
-        if @state == :executing && current_command.interruptable?
-          break!
-        end
-        finalize_command
-        notify_observers :dtmf_received, @response.body[:dtmf_digit]
+        interrupt_command
+        notify_current_observer :dtmf_received, @response.body[:dtmf_digit]
       when @response.disconnect?
+        log "Disconnected."
         cleanup
-        notify_observers :hungup
+        notify_current_observer :hungup
         @state = :waiting
-        log 'Bye!'
       end
     end
 
@@ -143,23 +148,27 @@ module Freevoice
       @queue.first
     end
 
+    def last_command
+      @last_command
+    end
+
     def finalize_command
       if command = @queue.shift
-        command.fire_callbacks @response
+        @last_command = command
+        command.fire_callback
       end
     end
 
     def execute_next_command
-      send_data current_command.to_s if current_command
+      send_data current_command if current_command
     end
 
-    def send_data(msg)
-      log 'SENT: ' + msg
-      super
+    def send_data(command)
+      super command.to_s
     end
 
     def log(msg)
-      puts msg
+      puts msg.strip + "\n\n"
     end
 
   end
