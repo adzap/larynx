@@ -11,7 +11,6 @@ module Freevoice
           var = parts[0].strip.gsub('-', '_').downcase.to_sym
           vars[var] = URI.unescape(parts[1]).strip
         rescue
-          puts "Parse Error: #{line}"
         end
       end
       vars
