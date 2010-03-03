@@ -30,8 +30,25 @@ module Freevoice
       execute AppCommand.new('phrase', text, options, &block)
     end
 
+    # def prompt(options={}, &block)
+    #   options.reverse_merge!(:bargein => true, :timeout => 10, :interdigit_timeout => 2, :termchar => '#')
+    #   method = *([:play, :speak, :phrase] & options.keys)
+    #   send(method, options[method], :bargein => options[:bargein]) {
+    #     if prompt_finished?(options)
+    #       block.call
+    #     else
+    #       # timer(:digit, options[:interdigit_timeout], &block)
+    #       timer(:input, options[:timeout], &block)
+    #     end
+    #   }
+    # end
+
+    def prompt_finished?(options)
+      input.last == options[:termchar] || input.size == (options[:max_length] || options[:length])
+    end
+
     def post_init
-      @queue, @input = [], []
+      @queue, @input, @timers = [], [], {}
       @state = :initiated
       connect {
         @state = :connected
@@ -93,26 +110,41 @@ module Freevoice
       command
     end
 
-    def timer(timeout, &block)
-      @timer = [EM::Timer.new(timeout) {
+    def timer(name, timeout, &block)
+      @timers[name] = [EM::Timer.new(timeout) {
+        @timers.delete(name)
         block.call
         notify_current_observer :timed_out
         execute_next_command if @state == :ready
-        @timer = nil
       }, block]
     end
 
-    def cancel_timer
-      if @timer
-        @timer[0].cancel
-        @timer[1].call if @timer[1]
-        @timer = nil
+    def cancel_timer(name)
+      if @timers[name]
+        timer = @timers.delete(name)
+        timer[0].cancel
+      end
+    end
+
+    def stop_timer(name)
+      if @timers[name]
+        timer = @timers.delete(name)
+        timer[0].cancel
+        timer[1].call if timer[1]
         execute_next_command if @state == :ready
+      end
+    end
+
+    def restart_timer(name)
+      if timer = @timers[name]
+        timer[0].restart
       end
     end
 
     def cleanup
       break! if @state == :executing
+      @timers.values.each {|t| t[0].cancel }
+      clear_observers!
     end
 
     def receive_request(header, content)
@@ -131,17 +163,21 @@ module Freevoice
         finalize_command
         execute_next_command unless last_command.command == 'break'
         @state = :ready
-      when @response.dtmf? || @response.speech?
+      when @response.dtmf? #|| @response.speech?
         log "Button pressed: #{@response.body[:dtmf_digit]}"
-        @input << @response.body[:dtmf_digit]
-        interrupt_command
-        notify_current_observer :dtmf_received, @response.body[:dtmf_digit]
+        handle_dtmf
       when @response.disconnect?
         log "Disconnected."
         cleanup
         notify_current_observer :hungup
         @state = :waiting
       end
+    end
+
+    def handle_dtmf
+      @input << @response.body[:dtmf_digit]
+      interrupt_command
+      notify_current_observer :dtmf_received, @response.body[:dtmf_digit]
     end
 
     def current_command
