@@ -1,11 +1,13 @@
 require 'rubygems'
 require 'eventmachine'
+require 'active_support'
 
 require 'freevoice/observable'
 require 'freevoice/parser'
 require 'freevoice/session'
 require 'freevoice/response'
 require 'freevoice/application'
+require 'freevoice/fields'
 require 'freevoice/command'
 require 'freevoice/call_handler'
 
