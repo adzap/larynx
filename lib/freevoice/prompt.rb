@@ -4,7 +4,7 @@ module Freevoice
 
     def initialize(call, options, &block)
       @call, @options, @block = call, options, block
-      @options.reverse_merge!(:attempts => 3, :bargein => true, :timeout => 10, :interdigit_timeout => 2, :termchar => '#')
+      @options.reverse_merge!(:attempts => 3, :bargein => true, :timeout => 10, :interdigit_timeout => 3, :termchar => '#')
     end
 
     def execute
@@ -29,7 +29,11 @@ module Freevoice
     end
 
     def prompt_finished?
-      call.input.last == @options[:termchar] || call.input.size == (@options[:max_length] || @options[:length])
+      call.input.last == @options[:termchar] || call.input.size == maximum_length
+    end
+
+    def maximum_length
+      @options[:max_length] || @options[:length]
     end
 
     def dtmf_received(digit)
