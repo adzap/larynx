@@ -6,15 +6,15 @@ module Freevoice
     attr_reader :observers
 
     def connect(&block)
-      execute ApiCommand.new(:connect, &block)
+      execute ApiCommand.new('connect', &block)
     end
 
     def answer(&block)
-      execute AppCommand.new(:answer, &block)
+      execute AppCommand.new('answer', &block)
     end
 
     def hangup(&block)
-      execute AppCommand.new(:hangup, &block)
+      execute AppCommand.new('hangup', &block)
     end
 
     def playback(text, options={}, &block)
