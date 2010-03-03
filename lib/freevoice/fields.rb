@@ -49,7 +49,7 @@ module Freevoice
 
       def add_prompt(options)
         method = *([:play, :speak, :phrase] & options.keys)
-        options.reverse_merge!(:attempts => 1, :bargein => true, :timeout => 10, :termchar => '#')
+        options.reverse_merge!(:attempts => 1, :bargein => true, :timeout => 10, :interdigit_timeout => 2, :termchar => '#')
         options[:message] = options.delete(method)
         options[:method]  = method
 
@@ -60,12 +60,19 @@ module Freevoice
       def next_prompt
         prompt = @prompt_queue[@attempt-1] || @prompt_queue.last
         call.clear_input
-        call.send(prompt[:method], prompt[:message], :bargein => prompt[:bargein]) {
-          # checks if input during speech/playback has completed input
+        message = prompt[:message].is_a?(Symbol) ? @app.send(prompt[:message]) : prompt[:message]
+        call.send(prompt[:method], message, :bargein => prompt[:bargein]) {
           if finished_input?
             evaluate_input
           else
-            call.timer(prompt[:timeout]) { evaluate_input }
+            call.timer(:digit, prompt[:interdigit_timeout]) {
+              call.cancel_timer :input
+              evaluate_input
+            }
+            call.timer(:input, prompt[:timeout]) {
+              call.cancel_timer :digit
+              evaluate_input
+            }
           end
         }
         @current_prompt = prompt
@@ -145,7 +152,10 @@ module Freevoice
 
       def dtmf_received(digit)
         if finished_input?
-          call.cancel_timer
+          call.stop_timer(:input)
+          call.cancel_timer(:digit)
+        else
+          call.restart_timer(:digit)
         end
       end
 
