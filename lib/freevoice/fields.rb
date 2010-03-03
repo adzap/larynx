@@ -48,34 +48,20 @@ module Freevoice
       end
 
       def add_prompt(options)
-        method = *([:play, :speak, :phrase] & options.keys)
-        options.reverse_merge!(:attempts => 1, :bargein => true, :timeout => 10, :interdigit_timeout => 2, :termchar => '#')
-        options[:message] = options.delete(method)
-        options[:method]  = method
-
         repeats = options.delete(:repeats) || 1
         @prompt_queue += ([options] * repeats)
       end
 
       def next_prompt
-        prompt = @prompt_queue[@attempt-1] || @prompt_queue.last
+        options = @prompt_queue[@attempt-1] || @prompt_queue.last
+        method  = ([:play, :speak, :phrase] & options.keys).first
+        message = options[method].is_a?(Symbol) ? @app.send(options[method]) : options[method]
+        options[method] = message
+
         call.clear_input
-        message = prompt[:message].is_a?(Symbol) ? @app.send(prompt[:message]) : prompt[:message]
-        call.send(prompt[:method], message, :bargein => prompt[:bargein]) {
-          if finished_input?
-            evaluate_input
-          else
-            call.timer(:digit, prompt[:interdigit_timeout]) {
-              call.cancel_timer :input
-              evaluate_input
-            }
-            call.timer(:input, prompt[:timeout]) {
-              call.cancel_timer :digit
-              evaluate_input
-            }
-          end
-        }
-        @current_prompt = prompt
+        prompt = Prompt.new(call, options) { evaluate_input }
+        prompt.execute
+        @current_prompt = options
       end
 
       def setup(&block)
@@ -125,7 +111,6 @@ module Freevoice
             next_prompt
           else
             fire_callback(:failure)
-            finalise
           end
         end
       end
@@ -146,29 +131,11 @@ module Freevoice
         @current_prompt[:termchar]
       end
 
-      def finished_input?
-        call.input.last == terminator || input.size == maximum_length
-      end
-
-      def dtmf_received(digit)
-        if finished_input?
-          call.stop_timer(:input)
-          call.cancel_timer(:digit)
-        else
-          call.restart_timer(:digit)
-        end
-      end
-
       def run(app)
         @app = app
         @attempt = 1
-        call.add_observer! self
         fire_callback(:setup)
         next_prompt
-      end
-
-      def finalise
-        call.remove_observer! self
       end
 
       def call
