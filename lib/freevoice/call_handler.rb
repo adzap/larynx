@@ -154,8 +154,8 @@ module Freevoice
 
     def finalize_command
       if command = @queue.shift
-        @last_command = command
         command.fire_callback
+        @last_command = command
       end
     end
 
