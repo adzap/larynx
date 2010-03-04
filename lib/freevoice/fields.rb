@@ -67,9 +67,8 @@ module Freevoice
         options[method] = message
 
         call.clear_input
-        prompt = Prompt.new(call, options) { evaluate_input }
+        prompt = Prompt.new(call, options) {|input| evaluate_input(input) }
         prompt.execute
-        @current_prompt = options
       end
 
       def setup(&block)
@@ -101,14 +100,10 @@ module Freevoice
       end
 
       def valid?
-        if input.size >= minimum_length
-          fire_callback(:validate)
-        else
-          false
-        end
+        value.size >= minimum_length && fire_callback(:validate)
       end
 
-      def evaluate_input
+      def evaluate_input(input)
         @app.send("#{@name}=", input)
         if valid?
           fire_callback(:success)
@@ -123,20 +118,16 @@ module Freevoice
         end
       end
 
+      def value
+        @app.send(@name)
+      end
+
       def maximum_length
         @options[:max_length] || @options[:length]
       end
 
       def minimum_length
-        @options[:min_length] || @options[:length] || 1
-      end
-
-      def input
-        (call.input.last == terminator ? call.input[0..-2] : call.input).join
-      end
-
-      def terminator
-        @current_prompt[:termchar]
+        @options[:min_length] || @options[:length]
       end
 
       def run(app)

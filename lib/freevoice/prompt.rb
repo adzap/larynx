@@ -8,28 +8,36 @@ module Freevoice
     end
 
     def execute
-      call.add_observer! self
       call.send(command, message, :bargein => @options[:bargein]) {
         if prompt_finished?
-          @block.call
+          @block.call(input)
           finalise
         else
+          call.add_observer! self
           call.timer(:digit, @options[:interdigit_timeout]) {
             call.cancel_timer :input
-            @block.call
+            @block.call(input)
             finalise
           }
           call.timer(:input, @options[:timeout]) {
             call.cancel_timer :digit
-            @block.call
+            @block.call(input)
             finalise
           }
         end
       }
     end
 
+    def input
+      (call.input.last == termchar ? call.input[0..-2] : call.input).join
+    end
+
     def prompt_finished?
-      call.input.last == @options[:termchar] || call.input.size == maximum_length
+      call.input.last == termchar || call.input.size == maximum_length
+    end
+
+    def termchar
+      @options[:termchar]
     end
 
     def maximum_length
