@@ -19,17 +19,25 @@ module Freevoice
 
     module InstanceMethods
 
-      def next_field
+      def next_field(field_name=nil)
         @current_field ||= 0
+        @current_field = index_of_field(field_name) if field_name
         if field = self.class.fields[@current_field]
           field.run(self)
           @current_field += 1
         end
       end
 
+      def index_of_field(name)
+        field = self.class.fields.find {|f| f.name == name }
+        self.class.fields.index(field)
+      end
+
     end
 
     class Field
+      attr_reader :name
+
       def initialize(name, options, &block)
         @name, @options, @callbacks = name, options, {}
         @prompt_queue = []
