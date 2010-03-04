@@ -13,6 +13,7 @@ module Freevoice
     end
 
     def run
+      #override for setup
     end
   end
 end
