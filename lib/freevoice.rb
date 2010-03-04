@@ -17,9 +17,14 @@ require 'freevoice/call_handler'
 module Freevoice
   class << self
     attr_reader :answer_block
+    attr_reader :hungup_block
 
     def answer(&block)
       @answer_block = block
+    end
+
+    def hungup(&block)
+      @hungup_block = block
     end
   end
 end

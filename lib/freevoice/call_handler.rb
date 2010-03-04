@@ -101,7 +101,7 @@ module Freevoice
       @timers[name] = [EM::Timer.new(timeout) {
         @timers.delete(name)
         block.call
-        notify_current_observer :timed_out
+        notify_observers :timed_out
         execute_next_command if @state == :ready
       }, block]
     end
@@ -160,7 +160,8 @@ module Freevoice
       when @response.disconnect?
         log "Disconnected."
         cleanup
-        notify_current_observer :hungup
+        notify_observers :hungup
+        Freevoice.hungup_block.call(self) if Freevoice.hungup_block
         @state = :waiting
       end
     end
@@ -168,7 +169,7 @@ module Freevoice
     def handle_dtmf
       @input << @response.body[:dtmf_digit]
       interrupt_command
-      notify_current_observer :dtmf_received, @response.body[:dtmf_digit]
+      notify_observers :dtmf_received, @response.body[:dtmf_digit]
     end
 
     def current_command
