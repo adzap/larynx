@@ -100,10 +100,11 @@ module Freevoice
       end
 
       def valid?
-        value.size >= minimum_length && fire_callback(:validate)
+        @value.size >= minimum_length && fire_callback(:validate)
       end
 
       def evaluate_input(input)
+        @value = input
         @app.send("#{@name}=", input)
         if valid?
           fire_callback(:success)
@@ -116,10 +117,6 @@ module Freevoice
             fire_callback(:failure)
           end
         end
-      end
-
-      def value
-        @app.send(@name)
       end
 
       def maximum_length
