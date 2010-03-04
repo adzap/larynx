@@ -25,7 +25,7 @@ module Freevoice
 
     def notify_observers(event, data=nil)
       return unless @observers
-      @observer.each do |obs|
+      @observers.each do |obs|
         next unless obs.respond_to?(event)
         data ? obs.send(event, data) : obs.send(event)
       end
