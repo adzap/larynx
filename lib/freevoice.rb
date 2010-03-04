@@ -9,8 +9,9 @@ require 'freevoice/session'
 require 'freevoice/response'
 require 'freevoice/command'
 require 'freevoice/prompt'
-require 'freevoice/fields'
 require 'freevoice/application'
+require 'freevoice/fields'
+require 'freevoice/form'
 require 'freevoice/call_handler'
 
 module Freevoice
