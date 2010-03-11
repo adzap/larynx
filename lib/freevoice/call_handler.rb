@@ -60,12 +60,12 @@ module Freevoice
     end
 
     def subscribe_to_events(&block)
-      # send_data ApiCommand.new('event plain ALL', &block)
+      # execute ApiCommand.new('event plain ALL', &block)
       execute ApiCommand.new('myevents', &block)
     end
 
     def filter_events(&block)
-      execute ApiCommand.new("filter Unique-ID #{@session.unique_id}", &block)
+      execute ApiCommand.new('filter', "Unique-ID #{@session.unique_id}", &block)
     end
 
     def linger_for_events(&block)
