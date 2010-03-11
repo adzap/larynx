@@ -148,9 +148,9 @@ module Freevoice
         execute_next_command
       when @response.executing?
         log "Executing: #{current_command.name}"
+        run_command_setup
         @state = :executing
       when @response.executed? && current_command
-        log "Finished: #{current_command.name}"
         finalize_command
         execute_next_command unless last_command.command == 'break'
         @state = :ready
@@ -180,9 +180,13 @@ module Freevoice
       @last_command
     end
 
+    def run_command_setup
+      current_command.fire_callback :before
+    end
+
     def finalize_command
       if command = @queue.shift
-        command.fire_callback
+        command.fire_callback :after
         @last_command = command
       end
     end
