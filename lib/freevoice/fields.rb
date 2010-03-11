@@ -66,8 +66,10 @@ module Freevoice
         message = options[method].is_a?(Symbol) ? @app.send(options[method]) : options[method]
         options[method] = message
 
-        call.clear_input
-        prompt = Prompt.new(call, options) {|input| evaluate_input(input) }
+        prompt = Prompt.new(call, options) {|input|
+          set_instance_variables(input)
+          evaluate_input
+        }
         prompt.execute
       end
 
@@ -103,9 +105,7 @@ module Freevoice
         @value.size >= minimum_length && fire_callback(:validate)
       end
 
-      def evaluate_input(input)
-        @value = input
-        @app.send("#{@name}=", input)
+      def evaluate_input
         if valid?
           fire_callback(:success)
         else
@@ -117,6 +117,11 @@ module Freevoice
             fire_callback(:failure)
           end
         end
+      end
+
+      def set_instance_variables(input)
+        @value = input
+        @app.send("#{@name}=", input)
       end
 
       def maximum_length
