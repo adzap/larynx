@@ -2,8 +2,9 @@ module Freevoice
   class Command
     attr_reader :command
 
-    def initialize(command, &block)
-      @command, @callback = command, block
+    def initialize(command, params=nil, &block)
+      @command, @params, @callbacks = command, params, {}
+      @callbacks[:after] = block if block_given?
     end
 
     def to_s
@@ -14,26 +15,39 @@ module Freevoice
       @command
     end
 
+    def before(&block)
+      @callbacks[:before] = block
+    end
+
+    def after(&block)
+      @callbacks[:after] = block
+    end
+
     def interruptable?
       false
     end
 
-    def fire_callback
-      @callback && @callback.call
+    def fire_callback(callback)
+      @callbacks[callback] && @callbacks[callback].call
     end
   end
 
   class ApiCommand < Command
+    def name
+      "#{@command}#{" #{@params}" if @params}"
+    end
+
     def to_s
-      "#{@command}\n\n"
+      cmd = @command
+      cmd << " #{@params}" if @params
+      cmd << "\n\n"
     end
   end
 
   class AppCommand < Command
-
     def initialize(command, params=nil, options={}, &block)
-      @command, @params, @callback = command, params, block
-      @options = {:bargein => true}.merge(options)
+      super command, params, &block
+      @options = options.reverse_merge(:bargein => true)
     end
 
     def name
@@ -52,6 +66,5 @@ module Freevoice
     def interruptable?
       @options[:bargein]
     end
-
   end
 end
