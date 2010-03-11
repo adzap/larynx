@@ -26,11 +26,15 @@ module Freevoice
     def hungup(&block)
       @hungup_block = block
     end
+
+    def start_server(ip="0.0.0.0", port=8084)
+      EM::run {
+        EM::start_server ip, port, Freevoice::CallHandler
+      }
+    end
   end
 end
 
 require ARGV[0]
 
-EventMachine::run {
-  EventMachine::start_server "0.0.0.0", 8084, Freevoice::CallHandler
-}
+Freevoice.start_server unless defined?(TEST)
