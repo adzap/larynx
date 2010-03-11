@@ -57,6 +57,7 @@ module Freevoice
 
       def add_prompt(options)
         repeats = options.delete(:repeats) || 1
+        options.merge!(@options.slice(:length, :min_length, :max_length))
         @prompt_queue += ([options] * repeats)
       end
 
