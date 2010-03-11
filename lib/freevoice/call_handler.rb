@@ -192,11 +192,9 @@ module Freevoice
     end
 
     def execute_next_command
-      send_data current_command if current_command
-    end
-
-    def send_data(command)
-      super command.to_s
+      if current_command
+        send_data current_command.to_s
+      end
     end
 
     def log(msg)
