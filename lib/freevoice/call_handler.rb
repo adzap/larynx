@@ -87,7 +87,7 @@ module Freevoice
     end
 
     def execute(command, immediately=false)
-      log "Queued command: #{command.name}"
+      log "Queued: #{command.name}"
       if immediately
         @queue.unshift command
         execute_next_command
@@ -198,7 +198,7 @@ module Freevoice
     end
 
     def log(msg)
-      puts msg.strip + "\n\n"
+      puts "[#{Time.now.strftime('%F %T')}] #{msg.strip}"
     end
 
   end
