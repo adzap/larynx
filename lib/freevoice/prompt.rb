@@ -1,10 +1,13 @@
 module Freevoice
+  class NoPromptCommandValue < StandardError; end
+
   class Prompt
     attr_reader :call
 
     def initialize(call, options, &block)
       @call, @options, @block = call, options, block
       @options.reverse_merge!(:attempts => 3, :bargein => true, :timeout => 10, :interdigit_timeout => 3, :termchar => '#')
+      raise NoPromptCommandValue, "No output command value supplied. Use one of playback, speak or phrase keys." if command.nil?
     end
 
     def execute
