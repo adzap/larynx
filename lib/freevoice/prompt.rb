@@ -11,7 +11,9 @@ module Freevoice
     end
 
     def execute
-      call.send(command, message, :bargein => @options[:bargein]) {
+      cmd = AppCommand.new(command, message, :bargein => @options[:bargein])
+      cmd.before { call.clear_input }
+      cmd.after  {
         if prompt_finished?
           @block.call(input)
           finalise
@@ -29,6 +31,7 @@ module Freevoice
           }
         end
       }
+      call.execute cmd
     end
 
     def input
