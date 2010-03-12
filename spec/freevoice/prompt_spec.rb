@@ -1,20 +1,5 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-class TestCallHandler < Freevoice::CallHandler
-  attr_accessor :send_data, :queue, :input
-
-  def queue
-    @queue
-  end
-
-  def send_data(msg)
-    @sent_data = msg
-  end
-
-  def log(msg)
-  end
-end
-
 describe Freevoice::Prompt do
   attr_accessor :call
 

@@ -10,6 +10,21 @@ require 'freevoice'
 RESPONSES = {}
 Dir['spec/fixtures/*.rb'].each {|file| require file }
 
+class TestCallHandler < Freevoice::CallHandler
+  attr_accessor :send_data, :queue, :input
+
+  def queue
+    @queue
+  end
+
+  def send_data(msg)
+    @sent_data = msg
+  end
+
+  def log(msg)
+  end
+end
+
 module SpecHelper
 end
 
