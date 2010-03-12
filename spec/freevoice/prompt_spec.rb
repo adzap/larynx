@@ -75,8 +75,7 @@ describe Freevoice::Prompt do
     it "should clear input on execution" do
       new_prompt.execute
       call.input << '1'
-      send_response :execute
-      puts call.input
+      call.run_command_setup
       call.input.should be_empty
     end
   end
@@ -84,11 +83,11 @@ describe Freevoice::Prompt do
   context "after execution callback" do
     context "input completed" do
       it "should not add timers if reached length" do
-        new_prompt(:speak => 'Hello', :length => 1).execute
+        new_prompt.execute
         call.input << '1'
         call.should_not_receive(:timer).with(:digit, anything())
         call.should_not_receive(:timer).with(:input, anything())
-        send_response :execute_complete
+        call.finalize_command
       end
 
       it "should not add timers if termchar input" do
@@ -96,7 +95,7 @@ describe Freevoice::Prompt do
         call.input << '#'
         call.should_not_receive(:timer).with(:digit, anything())
         call.should_not_receive(:timer).with(:input, anything())
-        send_response :execute_complete
+        call.finalize_command
       end
     end
 
@@ -105,14 +104,14 @@ describe Freevoice::Prompt do
         new_prompt.execute
         call.should_receive(:timer).with(:digit, anything())
         call.should_receive(:timer).with(:input, anything())
-        send_response :execute_complete
+        call.finalize_command
       end
 
       it "should add itself as call observer" do
         prompt = new_prompt
         prompt.execute
         call.stub!(:timer)
-        send_response :execute_complete
+        call.finalize_command
         call.observers.should include(prompt)
       end
     end
@@ -120,11 +119,9 @@ describe Freevoice::Prompt do
 
   context "finalize" do
     it "should run user callback" do
-      new_prompt(:speak => 'hello') {|input| @callback = true; done }.execute
-      call.input << '#'
-      em do
-        send_response :execute_complete
-      end
+      new_prompt {|input| @callback = true }.execute
+      call.input << '1'
+      call.finalize_command
       @callback.should be_true
     end
 
@@ -132,7 +129,7 @@ describe Freevoice::Prompt do
       prompt = new_prompt(:speak => 'hello', :interdigit_timeout => 0.1) {|input| done }
       prompt.execute
       em do
-        send_response :execute_complete
+        call.finalize_command
       end
       call.observers.should_not include(prompt)
     end
@@ -140,11 +137,9 @@ describe Freevoice::Prompt do
 
   context "user callback" do
     it "should be passed input argument equal to call input" do
-      new_prompt {|input| @callback = '1'; done }.execute
-      em do
-        call.input << '1'
-        send_response :execute_complete
-      end
+      new_prompt {|input| @callback = '1'}.execute
+      call.input << '1'
+      call.finalize_command
       @callback.should == '1'
     end
   end
@@ -154,7 +149,7 @@ describe Freevoice::Prompt do
       new_prompt(:speak => 'hello', :interdigit_timeout => 0.5) {|input| done }.execute
       start = Time.now
       em do
-        send_response :execute_complete
+        call.finalize_command
       end
       (Time.now-start).should be_close(0.5, 0.1)
     end
@@ -165,7 +160,7 @@ describe Freevoice::Prompt do
       start = Time.now
       em do
         EM.add_timer(0.5) { prompt.dtmf_received('1') }
-        send_response :execute_complete
+        call.finalize_command
       end
       (Time.now-start).should be_close(1.5, 0.2)
     end
@@ -176,7 +171,7 @@ describe Freevoice::Prompt do
       new_prompt(:speak => 'hello', :length => 5, :interdigit_timeout => 2, :timeout => 0.5) {|input| done }.execute
       start = Time.now
       em do
-        send_response :execute_complete
+        call.finalize_command
       end
       (Time.now-start).should be_close(0.5, 0.1)
     end
@@ -187,15 +182,10 @@ describe Freevoice::Prompt do
       start = Time.now
       em do
         EM.add_periodic_timer(0.5) { prompt.dtmf_received('1') }
-        send_response :execute_complete
+        call.finalize_command
       end
       (Time.now-start).should be_close(2, 0.2)
     end
-  end
-
-  def send_response(key)
-    response = RESPONSES[key]
-    call.receive_request(response[:header], response[:content])
   end
 
   def new_prompt(options=nil, &block)
