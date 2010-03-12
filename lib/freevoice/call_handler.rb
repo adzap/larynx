@@ -198,7 +198,9 @@ module Freevoice
     end
 
     def log(msg)
-      puts "[#{Time.now.strftime('%F %T')}] #{msg.strip}"
+      time = Time.now
+      usec = (".#{time.usec}".to_f * 1_000_000).to_i
+      puts "[#{time.strftime('%F %T')}.#{usec}] #{msg.strip}"
     end
 
   end
