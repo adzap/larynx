@@ -38,7 +38,7 @@ module Freevoice
     end
 
     def to_s
-      cmd = @command
+      cmd =  "#{@command}"
       cmd << " #{@params}" if @params
       cmd << "\n\n"
     end
