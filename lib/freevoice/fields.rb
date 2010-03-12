@@ -50,7 +50,7 @@ module Freevoice
       end
 
       def prompt(options)
-       add_prompt(options)
+        add_prompt(options)
       end
 
       def reprompt(options)
