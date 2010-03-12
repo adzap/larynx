@@ -59,8 +59,8 @@ module Freevoice
     end
 
     def finalise
-      @block.call(input)
       call.remove_observer! self
+      @block.call(input)
     end
 
     def add_digit_timer
