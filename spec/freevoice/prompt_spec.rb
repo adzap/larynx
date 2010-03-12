@@ -71,49 +71,74 @@ describe Freevoice::Prompt do
     end
   end
 
-  context "callback" do
-    it "should add digit and input timers" do
+  context "before execution callback" do
+    it "should clear input on execution" do
       new_prompt.execute
-      call.should_receive(:timer).with(:digit, anything())
-      call.should_receive(:timer).with(:input, anything())
-      send_response :execute_complete
-    end
-
-    it "should not add timers if completed before callback" do
-      new_prompt(:speak => 'Hello', :length => 1).execute
       call.input << '1'
-      call.should_not_receive(:timer).with(:digit, anything())
-      call.should_not_receive(:timer).with(:input, anything())
-      send_response :execute_complete
-    end
-
-    it "should add digit and input timers if input received but incomplete" do
-      new_prompt(:speak => 'hello', :length => 2).execute
-      call.input << '1'
-      call.should_receive(:timer).with(:digit, anything())
-      call.should_receive(:timer).with(:input, anything())
-      send_response :execute_complete
-    end
-
-    it "should not add timers if term char input but not complete" do
-      new_prompt(:speak => 'hello', :length => 2, :termchar => '#').execute
-      call.input << '#'
-      call.should_not_receive(:timer).with(:digit, anything())
-      call.should_not_receive(:timer).with(:input, anything())
-      send_response :execute_complete
+      send_response :execute
+      puts call.input
+      call.input.should be_empty
     end
   end
 
-  context "user callback" do
-    it "should be run when completed during prompt" do
-      new_prompt {|input| @callback = true; done }.execute
-      em do
+  context "after execution callback" do
+    context "input completed" do
+      it "should not add timers if reached length" do
+        new_prompt(:speak => 'Hello', :length => 1).execute
         call.input << '1'
+        call.should_not_receive(:timer).with(:digit, anything())
+        call.should_not_receive(:timer).with(:input, anything())
+        send_response :execute_complete
+      end
+
+      it "should not add timers if termchar input" do
+        new_prompt(:speak => 'hello', :length => 2, :termchar => '#').execute
+        call.input << '#'
+        call.should_not_receive(:timer).with(:digit, anything())
+        call.should_not_receive(:timer).with(:input, anything())
+        send_response :execute_complete
+      end
+    end
+
+    context "input not completed" do
+      it "should add timers" do
+        new_prompt.execute
+        call.should_receive(:timer).with(:digit, anything())
+        call.should_receive(:timer).with(:input, anything())
+        send_response :execute_complete
+      end
+
+      it "should add itself as call observer" do
+        prompt = new_prompt
+        prompt.execute
+        call.stub!(:timer)
+        send_response :execute_complete
+        call.observers.should include(prompt)
+      end
+    end
+  end
+
+  context "finalize" do
+    it "should run user callback" do
+      new_prompt(:speak => 'hello') {|input| @callback = true; done }.execute
+      call.input << '#'
+      em do
         send_response :execute_complete
       end
       @callback.should be_true
     end
 
+    it "should remove prompt as call observer" do
+      prompt = new_prompt(:speak => 'hello', :interdigit_timeout => 0.1) {|input| done }
+      prompt.execute
+      em do
+        send_response :execute_complete
+      end
+      call.observers.should_not include(prompt)
+    end
+  end
+
+  context "user callback" do
     it "should be passed input argument equal to call input" do
       new_prompt {|input| @callback = '1'; done }.execute
       em do
