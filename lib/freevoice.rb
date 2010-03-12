@@ -4,6 +4,7 @@ require 'active_support'
 
 require 'freevoice/eventmachine'
 require 'freevoice/observable'
+require 'freevoice/callbacks'
 require 'freevoice/parser'
 require 'freevoice/session'
 require 'freevoice/response'

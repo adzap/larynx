@@ -36,7 +36,10 @@ module Freevoice
     end
 
     class Field
+      include Callbacks
+
       attr_reader :name
+      define_callback :setup, :validate, :invalid, :success, :failure
 
       def initialize(name, options, &block)
         @name, @options, @callbacks = name, options, {}
@@ -72,26 +75,6 @@ module Freevoice
           evaluate_input
         }
         prompt.execute
-      end
-
-      def setup(&block)
-        @callbacks[:setup] = block
-      end
-
-      def validate(&block)
-        @callbacks[:validate] = block
-      end
-
-      def invalid(&block)
-        @callbacks[:invalid] = block
-      end
-
-      def success(&block)
-        @callbacks[:success] = block
-      end
-
-      def failure(&block)
-        @callbacks[:failure] = block
       end
 
       def fire_callback(callback)

@@ -1,10 +1,13 @@
 module Freevoice
   class Command
+    include Callbacks
     attr_reader :command
+
+    define_callback :before, :after
 
     def initialize(command, params=nil, &block)
       @command, @params, @callbacks = command, params, {}
-      @callbacks[:after] = block if block_given?
+      after(&block) if block_given?
     end
 
     def to_s
@@ -15,20 +18,8 @@ module Freevoice
       @command
     end
 
-    def before(&block)
-      @callbacks[:before] = block
-    end
-
-    def after(&block)
-      @callbacks[:after] = block
-    end
-
     def interruptable?
       false
-    end
-
-    def fire_callback(callback)
-      @callbacks[callback] && @callbacks[callback].call
     end
   end
 
