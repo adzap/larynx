@@ -15,20 +15,11 @@ module Freevoice
       cmd.before { call.clear_input }
       cmd.after  {
         if prompt_finished?
-          @block.call(input)
           finalise
         else
           call.add_observer! self
-          call.timer(:digit, @options[:interdigit_timeout]) {
-            call.cancel_timer :input
-            @block.call(input)
-            finalise
-          }
-          call.timer(:input, @options[:timeout]) {
-            call.cancel_timer :digit
-            @block.call(input)
-            finalise
-          }
+          add_digit_timer
+          add_input_timer
         end
       }
       call.execute cmd
@@ -68,7 +59,22 @@ module Freevoice
     end
 
     def finalise
+      @block.call(input)
       call.remove_observer! self
+    end
+
+    def add_digit_timer
+      call.timer(:digit, @options[:interdigit_timeout]) {
+        call.cancel_timer :input
+        finalise
+      }
+    end
+
+    def add_input_timer
+      call.timer(:input, @options[:timeout]) {
+        call.cancel_timer :digit
+        finalise
+      }
     end
   end
 end
