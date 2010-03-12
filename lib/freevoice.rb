@@ -36,6 +36,8 @@ module Freevoice
   end
 end
 
-require ARGV[0]
 
-Freevoice.start_server unless defined?(TEST)
+unless defined?(TEST)
+  require ARGV[0]
+  Freevoice.start_server
+end
