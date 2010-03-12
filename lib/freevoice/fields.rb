@@ -65,7 +65,7 @@ module Freevoice
       end
 
       def next_prompt
-        options = @prompt_queue[@attempt-1] || @prompt_queue.last
+        options = (@prompt_queue[@attempt-1] || @prompt_queue.last).dup
         method  = ([:play, :speak, :phrase] & options.keys).first
         message = options[method].is_a?(Symbol) ? @app.send(options[method]) : options[method]
         options[method] = message
