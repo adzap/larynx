@@ -7,7 +7,7 @@ module Freevoice
     end
 
     def remove_observer!(object)
-      @observers.delete(object)
+      @observers && @observers.delete(object)
     end
 
     def clear_observers!
