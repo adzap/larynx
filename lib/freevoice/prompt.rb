@@ -41,15 +41,6 @@ module Freevoice
       @options[:max_length] || @options[:length]
     end
 
-    def dtmf_received(digit)
-      if prompt_finished?
-        call.stop_timer(:input)
-        call.cancel_timer(:digit)
-      else
-        call.restart_timer(:digit)
-      end
-    end
-
     def command
       ([:play, :speak, :phrase] & @options.keys).first
     end
@@ -61,6 +52,15 @@ module Freevoice
     def finalise
       call.remove_observer! self
       @block.call(input)
+    end
+
+    def dtmf_received(digit)
+      if prompt_finished?
+        call.stop_timer(:input)
+        call.cancel_timer(:digit)
+      else
+        call.restart_timer(:digit)
+      end
     end
 
     def add_digit_timer
