@@ -2,8 +2,7 @@ module Freevoice
   class CallHandler < EventMachine::Protocols::HeaderAndContentProtocol
     include Observable
 
-    attr_reader :input
-    attr_reader :observers
+    attr_reader :input, :observers
 
     def connect(&block)
       execute ApiCommand.new('connect', &block)
@@ -34,6 +33,23 @@ module Freevoice
       execute Prompt.new(self, options, &block).command
     end
 
+    def subscribe_to_events(&block)
+      # execute ApiCommand.new('event plain ALL', &block)
+      execute ApiCommand.new('myevents', &block)
+    end
+
+    def filter_events(&block)
+      execute ApiCommand.new('filter', "Unique-ID #{@session.unique_id}", &block)
+    end
+
+    def linger_for_events(&block)
+      execute ApiCommand.new('linger', &block)
+    end
+
+    def break!
+      execute AppCommand.new('break'), true
+    end
+
     def post_init
       @queue, @input, @timers = [], [], {}
       @state = :initiated
@@ -57,23 +73,6 @@ module Freevoice
           }
         }
       }
-    end
-
-    def subscribe_to_events(&block)
-      # execute ApiCommand.new('event plain ALL', &block)
-      execute ApiCommand.new('myevents', &block)
-    end
-
-    def filter_events(&block)
-      execute ApiCommand.new('filter', "Unique-ID #{@session.unique_id}", &block)
-    end
-
-    def linger_for_events(&block)
-      execute ApiCommand.new('linger', &block)
-    end
-
-    def break!
-      execute AppCommand.new('break'), true
     end
 
     def interrupt_command
