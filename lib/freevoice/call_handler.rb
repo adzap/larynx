@@ -99,17 +99,17 @@ module Freevoice
 
     def timer(name, timeout, &block)
       @timers[name] = [EM::Timer.new(timeout) {
-        @timers.delete(name)
-        block.call
+        timer = @timers.delete(name)
+        timer[1].call if timer[1]
         notify_observers :timed_out
         execute_next_command if @state == :ready
       }, block]
     end
 
     def cancel_timer(name)
-      if @timers[name]
-        timer = @timers.delete(name)
+      if timer = @timers.delete(name)
         timer[0].cancel
+        execute_next_command if @state == :ready
       end
     end
 
@@ -118,8 +118,7 @@ module Freevoice
     end
 
     def stop_timer(name)
-      if @timers[name]
-        timer = @timers.delete(name)
+      if timer = @timers.delete(name)
         timer[0].cancel
         timer[1].call if timer[1]
         execute_next_command if @state == :ready
