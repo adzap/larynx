@@ -7,22 +7,21 @@ module Freevoice
     def initialize(call, options, &block)
       @call, @options, @block = call, options, block
       @options.reverse_merge!(:bargein => true, :timeout => 10, :interdigit_timeout => 3, :termchar => '#')
-      raise NoPromptCommandValue, "No output command value supplied. Use one of playback, speak or phrase keys." if command.nil?
+      raise NoPromptCommandValue, "No output command value supplied. Use one of playback, speak or phrase keys." if command_name.blank?
     end
 
-    def execute
-      cmd = AppCommand.new(command, message, :bargein => @options[:bargein])
-      cmd.before { call.clear_input }
-      cmd.after  {
-        if prompt_finished?
-          finalise
-        else
-          call.add_observer! self
-          add_digit_timer
-          add_input_timer
-        end
-      }
-      call.execute cmd
+    def command
+      @command ||= AppCommand.new(command_name, message, :bargein => @options[:bargein]).
+        before { call.clear_input }.
+        after  {
+          if prompt_finished?
+            finalise
+          else
+            call.add_observer! self
+            add_digit_timer
+            add_input_timer
+          end
+        }
     end
 
     def input
@@ -41,12 +40,12 @@ module Freevoice
       @options[:max_length] || @options[:length]
     end
 
-    def command
-      ([:play, :speak, :phrase] & @options.keys).first
+    def command_name
+      ([:play, :speak, :phrase] & @options.keys).first.to_s
     end
 
     def message
-      @options[command]
+      @options[command_name]
     end
 
     def finalise

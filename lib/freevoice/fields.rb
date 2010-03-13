@@ -74,7 +74,7 @@ module Freevoice
           set_instance_variables(input)
           evaluate_input
         }
-        prompt.execute
+        call.execute prompt.command
       end
 
       def fire_callback(callback)

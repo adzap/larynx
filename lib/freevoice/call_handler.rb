@@ -31,7 +31,7 @@ module Freevoice
     end
 
     def prompt(options={}, &block)
-      Prompt.new(self, options, &block).execute
+      execute Prompt.new(self, options, &block).command
     end
 
     def post_init
