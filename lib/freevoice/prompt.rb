@@ -45,7 +45,7 @@ module Freevoice
     end
 
     def message
-      @options[command_name]
+      @options[command_name.to_sym]
     end
 
     def finalise

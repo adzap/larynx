@@ -13,9 +13,15 @@ describe Freevoice::Prompt do
   end
 
   it "should return correct command name from options" do
-    new_prompt(:speak  => 'Hello').command_name.should == 'speak'
-    new_prompt(:play   => 'Hello').command_name.should == 'play'
-    new_prompt(:phrase => 'Hello').command_name.should == 'phrase'
+    new_prompt(:speak  => 'Hello1').command_name.should == 'speak'
+    new_prompt(:play   => 'Hello2').command_name.should == 'play'
+    new_prompt(:phrase => 'Hello3').command_name.should == 'phrase'
+  end
+
+  it "should return correct message from options" do
+    new_prompt(:speak  => 'Hello1').message.should == 'Hello1'
+    new_prompt(:play   => 'Hello2').message.should == 'Hello2'
+    new_prompt(:phrase => 'Hello3').message.should == 'Hello3'
   end
 
   context "input" do
