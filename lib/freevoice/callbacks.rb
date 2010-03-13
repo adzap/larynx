@@ -15,6 +15,7 @@ module Freevoice
             def #{callback}(&block)
               @callbacks ||= {}
               @callbacks[:#{callback}] = block
+              self
             end
           DEF
         end
