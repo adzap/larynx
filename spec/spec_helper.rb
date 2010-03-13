@@ -11,11 +11,7 @@ RESPONSES = {}
 Dir['spec/fixtures/*.rb'].each {|file| require file }
 
 class TestCallHandler < Freevoice::CallHandler
-  attr_accessor :send_data, :queue, :input
-
-  def queue
-    @queue
-  end
+  attr_accessor :sent_data, :queue, :input, :timers
 
   def send_data(msg)
     @sent_data = msg
