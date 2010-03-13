@@ -1,4 +1,6 @@
 module Freevoice
+  class NoPromptDefined < StandardError; end
+
   module Fields
 
     def self.included(base)
@@ -25,6 +27,7 @@ module Freevoice
         if field = self.class.fields[@current_field]
           field.run(self)
           @current_field += 1
+          field
         end
       end
 
@@ -42,11 +45,12 @@ module Freevoice
       define_callback :setup, :validate, :invalid, :success, :failure
 
       def initialize(name, options, &block)
-        @name, @options, @callbacks = name, options, {}
+        @name, @callbacks = name, {}
+        @options = options.reverse_merge(:attempts => 3)
         @prompt_queue = []
 
         instance_eval(&block)
-        raise 'A field requires a prompt to be defined' if @prompt_queue.empty?
+        raise(Freevoice::NoPromptDefined, 'A field requires a prompt to be defined') if @prompt_queue.empty?
       end
 
       def prompt(options)
@@ -64,17 +68,24 @@ module Freevoice
         @prompt_queue += ([options] * repeats)
       end
 
-      def next_prompt
+      def current_prompt
         options = (@prompt_queue[@attempt-1] || @prompt_queue.last).dup
         method  = ([:play, :speak, :phrase] & options.keys).first
         message = options[method].is_a?(Symbol) ? @app.send(options[method]) : options[method]
         options[method] = message
 
-        prompt = Prompt.new(call, options) {|input|
+        Prompt.new(call, options) {|input|
           set_instance_variables(input)
           evaluate_input
         }
-        call.execute prompt.command
+      end
+
+      def execute_prompt
+        call.execute current_prompt.command
+      end
+
+      def increment_attempts
+        @attempt += 1
       end
 
       def fire_callback(callback)
@@ -95,8 +106,8 @@ module Freevoice
         else
           fire_callback(:invalid)
           if @attempt < @options[:attempts]
-            @attempt += 1
-            next_prompt
+            increment_attempts
+            execute_prompt
           else
             fire_callback(:failure)
           end
@@ -113,14 +124,14 @@ module Freevoice
       end
 
       def minimum_length
-        @options[:min_length] || @options[:length]
+        @options[:min_length] || @options[:length] || 1
       end
 
       def run(app)
         @app = app
         @attempt = 1
         fire_callback(:setup)
-        next_prompt
+        execute_prompt
       end
 
       def call

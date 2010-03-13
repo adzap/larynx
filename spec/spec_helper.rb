@@ -26,6 +26,17 @@ class TestCallHandler < Freevoice::CallHandler
 end
 
 module SpecHelper
+  def should_be_called(times=1, &block)
+    proc = mock('Proc should be called')
+    proc.should_receive(:call).exactly(times).times.instance_eval(&(block || lambda {}))
+    lambda { |*args| proc.call(*args) }
+  end
+
+  def should_not_be_called(&block)
+    proc = mock('Proc should not be called')
+    proc.should_not_receive(:call).instance_eval(&(block || lambda {}))
+    lambda { |*args| proc.call(*args) }
+  end
 end
 
 Spec::Runner.configure do |config|
