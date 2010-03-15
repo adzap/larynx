@@ -162,9 +162,10 @@ module Freevoice
         finalize_command
         send_next_command unless last_command.command == 'break'
         @state = :ready
-      when @response.dtmf? #|| @response.speech?
+      when @response.dtmf?
         log "Button pressed: #{@response.body[:dtmf_digit]}"
         handle_dtmf
+      when @response.speech?
       when @response.disconnect?
         log "Disconnected."
         cleanup
