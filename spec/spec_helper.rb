@@ -17,6 +17,11 @@ class TestCallHandler < Freevoice::CallHandler
     @sent_data = msg
   end
 
+  def send_response(response)
+    request = RESPONSE[response]
+    receive_request(request[:header], request[:content])
+  end
+
   def log(msg)
   end
 end
