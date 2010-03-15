@@ -5,10 +5,13 @@ describe Freevoice::CallHandler do
 
   before do
     @call = TestCallHandler.new(1)
-    @call.queue = []
   end
 
   context "execute" do
+    before do
+      call.queue = []
+    end
+
     it "should queue commands" do
       call.execute Freevoice::Command.new('dummy1')
       call.execute Freevoice::Command.new('dummy2')
@@ -25,14 +28,35 @@ describe Freevoice::CallHandler do
   end
 
   it "should return first command in queue for current_command" do
+    call.queue = []
     call.execute Freevoice::Command.new('dummy')
     call.current_command.command.should == 'dummy'
   end
 
-  it "should send current command message on execute_next_command" do
+  it "should send current command message on send_next_command" do
+    call.queue = []
     call.execute Freevoice::Command.new('dummy')
-    call.execute_next_command
+    call.send_next_command
     call.sent_data.should == 'dummy'
+  end
+
+  context "initialisation" do
+    it "should queue connect command on init" do
+      em do
+        call.current_command.name.should == 'connect'
+        done
+      end
+    end
+    it "should set state to initiated" do
+      em do
+        call.state.should == :initiated
+        done
+      end
+    end
+  end
+
+  context "reply received" do
+    it "should finalise current command if it is an API command"
   end
 
   context "timer" do
@@ -70,6 +94,7 @@ describe Freevoice::CallHandler do
     end
   end
 
+  # TODO fix restart timer timing
   # context "restart_timer" do
   #   it "should start timer again" do
   #     start = Time.now
