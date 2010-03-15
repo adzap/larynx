@@ -57,7 +57,7 @@ module Freevoice
         @state = :connected
         start_session
       }
-      execute_next_command
+      send_next_command
     end
 
     def start_session
@@ -97,7 +97,7 @@ module Freevoice
       log "Queued: #{command.name}"
       if immediately
         @queue.unshift command
-        execute_next_command
+        send_next_command
       else
         @queue << command
       end
@@ -109,14 +109,14 @@ module Freevoice
         timer = @timers.delete(name)
         timer[1].call if timer[1]
         notify_observers :timed_out
-        execute_next_command if @state == :ready
+        send_next_command if @state == :ready
       }, block]
     end
 
     def cancel_timer(name)
       if timer = @timers.delete(name)
         timer[0].cancel
-        execute_next_command if @state == :ready
+        send_next_command if @state == :ready
       end
     end
 
@@ -128,7 +128,7 @@ module Freevoice
       if timer = @timers.delete(name)
         timer[0].cancel
         timer[1].call if timer[1]
-        execute_next_command if @state == :ready
+        send_next_command if @state == :ready
       end
     end
 
@@ -151,14 +151,14 @@ module Freevoice
       when @response.reply? && current_command.is_a?(ApiCommand)
         log "Completed: #{current_command.name}"
         finalize_command
-        execute_next_command
+        send_next_command
       when @response.executing?
         log "Executing: #{current_command.name}"
         run_command_setup
         @state = :executing
       when @response.executed? && current_command
         finalize_command
-        execute_next_command unless last_command.command == 'break'
+        send_next_command unless last_command.command == 'break'
         @state = :ready
       when @response.dtmf? #|| @response.speech?
         log "Button pressed: #{@response.body[:dtmf_digit]}"
@@ -197,7 +197,7 @@ module Freevoice
       end
     end
 
-    def execute_next_command
+    def send_next_command
       if current_command
         send_data current_command.to_s
       end
