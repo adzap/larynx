@@ -1,4 +1,4 @@
-module Freevoice
+module Larynx
   module Callbacks
 
     def self.included(base)

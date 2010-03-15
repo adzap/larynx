@@ -1,4 +1,4 @@
-module Freevoice
+module Larynx
   module Observable
 
     def add_observer!(object)

@@ -1,4 +1,4 @@
-module Freevoice
+module Larynx
   class Command
     include Callbacks
     attr_reader :command

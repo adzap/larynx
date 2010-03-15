@@ -1,4 +1,4 @@
-module Freevoice
+module Larynx
   class NoPromptDefined < StandardError; end
 
   module Fields
@@ -50,7 +50,7 @@ module Freevoice
         @prompt_queue = []
 
         instance_eval(&block)
-        raise(Freevoice::NoPromptDefined, 'A field requires a prompt to be defined') if @prompt_queue.empty?
+        raise(Larynx::NoPromptDefined, 'A field requires a prompt to be defined') if @prompt_queue.empty?
       end
 
       def prompt(options)

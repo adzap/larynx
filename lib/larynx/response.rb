@@ -1,4 +1,4 @@
-module Freevoice
+module Larynx
   class Response
     include Parser
     attr_reader :header, :body

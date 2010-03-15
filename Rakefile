@@ -3,10 +3,10 @@ require 'rake/rdoctask'
 require 'rake/gempackagetask'
 require 'rubygems/specification'
 require 'spec/rake/spectask'
-require 'lib/freevoice/version'
+require 'lib/larynx/version'
 
-GEM_NAME = "freevoice"
-GEM_VERSION = Freevoice::VERSION
+GEM_NAME = "larynx"
+GEM_VERSION = Larynx::VERSION
 
 spec = Gem::Specification.new do |s|
   s.name = GEM_NAME
@@ -19,7 +19,7 @@ spec = Gem::Specification.new do |s|
   s.description = s.summary
   s.author = "Adam Meehan"
   s.email = "adam.meehan@gmail.com"
-  s.homepage = "http://github.com/adzap/freevoice"
+  s.homepage = "http://github.com/adzap/larynx"
 
   s.require_path = 'lib'
   s.autorequire = GEM_NAME

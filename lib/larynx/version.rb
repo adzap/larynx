@@ -1,3 +1,3 @@
-module Freevoice
+module Larynx
   VERSION = '0.1.0'
 end

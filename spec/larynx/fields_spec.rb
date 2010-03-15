@@ -1,15 +1,15 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Freevoice::Fields do
+describe Larynx::Fields do
   attr_reader :call, :app
 
   before do
     @call = TestCallHandler.new(1)
-    @app = Freevoice::Application.new(@call)
+    @app = Larynx::Application.new(@call)
   end
 
   context 'module' do
-    include Freevoice::Fields
+    include Larynx::Fields
 
     it 'should add field class method' do
       self.class.should respond_to(:field)
@@ -22,7 +22,7 @@ describe Freevoice::Fields do
   end
 
   context 'next_field' do
-    include Freevoice::Fields
+    include Larynx::Fields
     field(:field1) { prompt :speak => 'hello' }
     field(:field2) { prompt :speak => 'hello' }
     field(:field3) { prompt :speak => 'hello' }
@@ -40,7 +40,7 @@ describe Freevoice::Fields do
 
   context 'field object' do
     it 'should raise exception if field has no prompt' do
-      lambda { field(:guess) {} }.should raise_exception(Freevoice::NoPromptDefined)
+      lambda { field(:guess) {} }.should raise_exception(Larynx::NoPromptDefined)
     end
 
     it 'should run setup callback once' do
@@ -189,6 +189,6 @@ describe Freevoice::Fields do
 
   def field(name, options={}, &block)
     @app.class.class_eval { attr_accessor name }
-    Freevoice::Fields::Field.new(name, options, &block)
+    Larynx::Fields::Field.new(name, options, &block)
   end
 end

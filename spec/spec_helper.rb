@@ -5,12 +5,12 @@ TEST = true
 
 require 'rubygems'
 require 'em-spec/rspec'
-require 'freevoice'
+require 'larynx'
 
 RESPONSES = {}
 Dir['spec/fixtures/*.rb'].each {|file| require file }
 
-class TestCallHandler < Freevoice::CallHandler
+class TestCallHandler < Larynx::CallHandler
   attr_accessor :sent_data, :queue, :input, :timers
 
   def send_data(msg)

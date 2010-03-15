@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Freevoice::CallHandler do
+describe Larynx::CallHandler do
   attr_reader :call
 
   before do
@@ -13,15 +13,15 @@ describe Freevoice::CallHandler do
     end
 
     it "should queue commands" do
-      call.execute Freevoice::Command.new('dummy1')
-      call.execute Freevoice::Command.new('dummy2')
+      call.execute Larynx::Command.new('dummy1')
+      call.execute Larynx::Command.new('dummy2')
       call.queue[0].command.should == 'dummy1'
       call.queue[1].command.should == 'dummy2'
     end
 
     it "should push command on front of queue when immediate is true" do
-      call.execute Freevoice::Command.new('dummy1')
-      call.execute Freevoice::Command.new('dummy2'), true
+      call.execute Larynx::Command.new('dummy1')
+      call.execute Larynx::Command.new('dummy2'), true
       call.queue[0].command.should == 'dummy2'
       call.queue[1].command.should == 'dummy1'
     end
@@ -29,13 +29,13 @@ describe Freevoice::CallHandler do
 
   it "should return first command in queue for current_command" do
     call.queue = []
-    call.execute Freevoice::Command.new('dummy')
+    call.execute Larynx::Command.new('dummy')
     call.current_command.command.should == 'dummy'
   end
 
   it "should send current command message on send_next_command" do
     call.queue = []
-    call.execute Freevoice::Command.new('dummy')
+    call.execute Larynx::Command.new('dummy')
     call.send_next_command
     call.sent_data.should == 'dummy'
   end

@@ -1,4 +1,4 @@
-module Freevoice
+module Larynx
   class Form < Application
     include Fields
 

@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Freevoice::Prompt do
+describe Larynx::Prompt do
   attr_accessor :call
 
   before do
@@ -9,7 +9,7 @@ describe Freevoice::Prompt do
   end
 
   it "should raise error if no command value supplied" do
-     lambda { Freevoice::Prompt.new(call, {}) }.should raise_exception(Freevoice::NoPromptCommandValue)
+     lambda { Larynx::Prompt.new(call, {}) }.should raise_exception(Larynx::NoPromptCommandValue)
   end
 
   it "should return correct command name from options" do
@@ -69,7 +69,7 @@ describe Freevoice::Prompt do
   context "command" do
     it "should return command object for command name" do
       cmd = new_prompt.command
-      cmd.should be_kind_of(Freevoice::AppCommand)
+      cmd.should be_kind_of(Larynx::AppCommand)
       cmd.command.should == 'speak'
     end
   end
@@ -209,7 +209,7 @@ describe Freevoice::Prompt do
 
   def new_prompt(options=nil, &block)
     block = lambda { @callback = true } unless block_given?
-    Freevoice::Prompt.new(call, options || {:speak => 'Hello world', :length => 1}, &block)
+    Larynx::Prompt.new(call, options || {:speak => 'Hello world', :length => 1}, &block)
   end
 
   def before_callback(prompt)

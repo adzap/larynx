@@ -1,4 +1,4 @@
-module Freevoice
+module Larynx
   class Application
     attr_reader :call
 

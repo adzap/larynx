@@ -4,4 +4,4 @@ unless defined?(Gem)
   $:.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
 end
 
-require 'freevoice'
+require 'larynx'

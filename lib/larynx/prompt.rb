@@ -1,4 +1,4 @@
-module Freevoice
+module Larynx
   class NoPromptCommandValue < StandardError; end
 
   class Prompt

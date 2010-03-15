@@ -1,4 +1,4 @@
-module Freevoice
+module Larynx
   class CallHandler < EventMachine::Protocols::HeaderAndContentProtocol
     include Observable
 
@@ -58,7 +58,7 @@ module Freevoice
         @session = Session.new(@response.header)
         log "Call received from #{caller_id}"
         @state = :connected
-        Freevoice.fire_callback(:connect, self)
+        Larynx.fire_callback(:connect, self)
         start_session
       }
       send_next_command
@@ -71,7 +71,7 @@ module Freevoice
           answer {
             log 'Answered call'
             @state = :ready
-            Freevoice.fire_callback(:answer, self)
+            Larynx.fire_callback(:answer, self)
           }
         }
       }
@@ -170,7 +170,7 @@ module Freevoice
         log "Disconnected."
         cleanup
         notify_observers :hungup
-        Freevoice.fire_callback(:hungup, self)
+        Larynx.fire_callback(:hungup, self)
         @state = :waiting
       end
     end

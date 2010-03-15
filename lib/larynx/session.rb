@@ -1,4 +1,4 @@
-module Freevoice
+module Larynx
   class Session
     attr_reader :variables
 
