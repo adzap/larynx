@@ -75,6 +75,14 @@ module Freevoice
       }
     end
 
+    def called_number
+      @session[:caller_destination_number]
+    end
+
+    def caller_id
+      @session[:caller_caller_id_number]
+    end
+
     def interrupt_command
       if @state == :executing && current_command.interruptable?
         break!
