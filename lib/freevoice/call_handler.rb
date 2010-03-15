@@ -50,26 +50,28 @@ module Freevoice
       execute AppCommand.new('break'), true
     end
 
+    # EM hook which is run when call is received
     def post_init
       @queue, @input, @timers = [], [], {}
       @state = :initiated
       connect {
+        @session = Session.new(@response.header)
+        log "Call received from #{caller_id}"
         @state = :connected
+        Freevoice.fire_callback(:connect, self)
         start_session
       }
       send_next_command
     end
 
     def start_session
-      @session = Session.new(@response.header)
-      log "Call received from #{@response.header[:caller_caller_id_number]}"
       subscribe_to_events {
         filter_events {
           linger_for_events
           answer {
             log 'Answered call'
             @state = :ready
-            Freevoice.answer_block.call(self) if Freevoice.answer_block
+            Freevoice.fire_callback(:answer, self)
           }
         }
       }
@@ -167,7 +169,7 @@ module Freevoice
         log "Disconnected."
         cleanup
         notify_observers :hungup
-        Freevoice.hungup_block.call(self) if Freevoice.hungup_block
+        Freevoice.fire_callback(:hungup, self)
         @state = :waiting
       end
     end

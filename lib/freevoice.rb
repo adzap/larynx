@@ -17,16 +17,9 @@ require 'freevoice/call_handler'
 
 module Freevoice
   class << self
-    attr_reader :answer_block
-    attr_reader :hungup_block
+    include Callbacks
 
-    def answer(&block)
-      @answer_block = block
-    end
-
-    def hungup(&block)
-      @hungup_block = block
-    end
+    define_callback :connect, :answer, :hungup
 
     def start_server(ip="0.0.0.0", port=8084)
       EM::run {
