@@ -23,8 +23,8 @@ module Freevoice
     end
 
     module InstanceMethods
-      def fire_callback(callback)
-        @callbacks[callback] && @callbacks[callback].call
+      def fire_callback(callback, *args)
+        @callbacks[callback] && @callbacks[callback].call(*args)
       end
     end
 
