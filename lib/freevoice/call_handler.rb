@@ -2,7 +2,7 @@ module Freevoice
   class CallHandler < EventMachine::Protocols::HeaderAndContentProtocol
     include Observable
 
-    attr_reader :input, :observers
+    attr_reader :state, :session, :input, :observers
 
     def connect(&block)
       execute ApiCommand.new('connect', &block)
