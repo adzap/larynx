@@ -12,5 +12,9 @@ module Freevoice
       end
     end
 
+    def [](key)
+      @variables[key]
+    end
+
   end
 end
