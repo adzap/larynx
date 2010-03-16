@@ -11,14 +11,14 @@ RESPONSES = {}
 Dir['spec/fixtures/*.rb'].each {|file| require file }
 
 class TestCallHandler < Larynx::CallHandler
-  attr_accessor :sent_data, :queue, :input, :timers
+  attr_accessor :sent_data, :session, :queue, :input, :timers
 
   def send_data(msg)
     @sent_data = msg
   end
 
   def send_response(response)
-    request = RESPONSE[response]
+    request = ::RESPONSES[response]
     receive_request(request[:header], request[:content])
   end
 
