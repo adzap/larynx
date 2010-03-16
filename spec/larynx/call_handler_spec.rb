@@ -40,23 +40,218 @@ describe Larynx::CallHandler do
     call.sent_data.should == 'dummy'
   end
 
-  context "initialisation" do
-    it "should queue connect command on init" do
-      em do
-        call.current_command.name.should == 'connect'
-        done
-      end
+  context "reply received" do
+    before do
+      call.queue = []
     end
-    it "should set state to initiated" do
-      em do
-        call.state.should == :initiated
-        done
-      end
+
+    it "should finalise current command if it is an API command" do
+      call.should_receive :finalize_command
+      call.connect
+      call.send_response :reply_ok
+    end
+
+    it "should not finalise current command if it is an App command" do
+      call.should_not_receive :finalize_command
+      call.speak 'hello'
+      call.send_response :reply_ok
     end
   end
 
-  context "reply received" do
-    it "should finalise current command if it is an API command"
+  context "executing event received" do
+    before do
+      call.queue = []
+    end
+
+    it "should run app command before callback" do
+      call.speak('hello world').before { @callback = true }
+      call.send_response :execute
+      @callback.should be_true
+    end
+
+    it "should change state to executing" do
+      call.speak 'hello'
+      call.send_response :execute
+      call.state.should == :executing
+    end
+
+    it "should not finalize command" do
+      call.should_not_receive :finalize_command
+      call.speak 'hello'
+      call.send_response :execute
+    end
+  end
+
+  context "execution complete event received" do
+    before do
+      call.queue = []
+    end
+
+    it "should finalize command" do
+      call.should_receive :finalize_command
+      call.speak 'hello'
+      call.send_response :execute_complete
+    end
+
+    it "should change state to ready" do
+      call.speak 'hello'
+      call.send_response :execute_complete
+      call.state.should == :ready
+    end
+  end
+
+  context "finalizing command" do
+    before do
+      call.queue = []
+      call.speak('hello world').after { @callback = true }
+      @command = call.current_command
+      call.finalize_command
+    end
+
+    it "should run after callback" do
+      @callback.should be_true
+    end
+
+    it "should remove command from queue" do
+      call.queue.should be_empty
+    end
+
+    it "should set command as last command" do
+      call.last_command.should == @command
+    end
+  end
+
+  context "initialisation" do
+    it "should queue connect command on init" do
+      call.current_command.name.should == 'connect'
+    end
+
+    it "should set state to initiated" do
+      call.state.should == :initiated
+    end
+  end
+
+  context "on connection" do
+    it "should create session object" do
+      connect_call
+      call.session.should_not be_nil
+    end
+
+    it "should change state to connected" do
+      connect_call
+      call.state.should == :connected
+    end
+
+    it "should fire global connect callback" do
+      Larynx.connect {|call| @callback = true }
+      connect_call
+      @callback.should be_true
+    end
+
+    it "should start the call session" do
+      call.should_receive :start_session
+      connect_call
+    end
+
+    def connect_call
+      call.send_response :channel_data
+    end
+
+    after do
+      Larynx.connect {|call|}
+    end
+  end
+
+  context "on session start" do
+    before do
+      call.queue = []
+      call.session = mock('session', :unique_id => '123')
+    end
+
+    it "should subscribe to events" do
+      call.should_receive(:subscribe_to_events)
+      call.start_session
+    end
+
+    it "should filter events after subscribe" do
+      call.should_receive(:filter_events)
+      call.start_session
+      call.send_response :reply_ok
+    end
+
+    it "should set event lingering on after filter events" do
+      call.should_receive(:linger_for_events)
+      call.start_session
+      call.send_response :reply_ok
+      call.send_response :reply_ok
+    end
+
+    it "should answer call after filter events" do
+      call.should_receive(:answer)
+      call.start_session
+      call.send_response :reply_ok
+      call.send_response :reply_ok
+    end
+  end
+
+  context "on answer" do
+    before do
+      call.queue = []
+      call.session = mock('session', :unique_id => '123')
+    end
+
+    it "should change state to ready" do
+      answer_call
+      call.state.should == :ready
+    end
+
+    it "should fire global answer callback" do
+      Larynx.answer {|call| @callback = true }
+      answer_call
+      @callback.should be_true
+    end
+
+    def answer_call
+      call.start_session
+      call.send_response :reply_ok
+      call.send_response :reply_ok
+      call.send_response :reply_ok
+      call.send_response :execute_complete
+    end
+  end
+
+  context "DTMF event" do
+    it "should add DTMF digit to input" do
+      run_command
+      call.send_response :dtmf
+      call.input.should == ['1']
+    end
+
+    it "should send break if interruptable command" do
+      run_command true
+      call.send_response :dtmf
+      call.sent_data.should match(/break/)
+    end
+
+    it "should not send break if non-interruptable command" do
+      run_command false
+      call.send_response :dtmf
+      call.sent_data.should_not match(/break/)
+    end
+
+    it "should notify observers and pass digit" do
+      app = mock('App')
+      call.add_observer! app
+      app.should_receive(:dtmf_received).with('1')
+      call.send_response :dtmf
+    end
+
+    def run_command(interruptable=true)
+      call.queue = []
+      call.speak 'hello', :bargein => interruptable
+      call.send_next_command
+      call.send_response :execute
+    end
   end
 
   context "timer" do
