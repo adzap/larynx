@@ -62,7 +62,7 @@ module Larynx
     end
 
     def timer(name, timeout, &block)
-      @timers[name] = [EM::Timer.new(timeout) {
+      @timers[name] = [RestartableTimer.new(timeout) {
         timer = @timers.delete(name)
         timer[1].call if timer[1]
         notify_observers :timed_out

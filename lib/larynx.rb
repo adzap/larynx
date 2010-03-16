@@ -3,7 +3,7 @@ require 'eventmachine'
 require 'active_support'
 require 'daemons'
 
-require 'larynx/eventmachine'
+require 'larynx/restartable_timer'
 require 'larynx/observable'
 require 'larynx/callbacks'
 require 'larynx/parser'

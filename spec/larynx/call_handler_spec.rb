@@ -262,7 +262,7 @@ describe Larynx::CallHandler do
 
   context "timer" do
     it "should add EM timer with name and timeout" do
-      EM::Timer.stub!(:new)
+      Larynx::RestartableTimer.stub!(:new)
       call.timer(:test, 0.1)
       call.timers[:test].should_not be_nil
     end
@@ -295,17 +295,15 @@ describe Larynx::CallHandler do
     end
   end
 
-  # TODO fix restart timer timing
-  # context "restart_timer" do
-  #   it "should start timer again" do
-  #     start = Time.now
-  #     puts "#{Time.now.sec}.#{Time.now.usec}"
-  #     em do
-  #       EM::Timer.new(0.1) { puts "#{Time.now.sec}.#{Time.now.usec}"; call.restart_timer :test }
-  #       call.timer(:test, 0.2) { puts "#{Time.now.sec}.#{Time.now.usec}"; done }
-  #     end
-  #     (Time.now-start).should be_close(0.3, 0.06)
-  #   end
-  # end
+  context "restart_timer" do
+    it "should start timer again" do
+      start = Time.now
+      em do
+        EM::Timer.new(0.5) { call.restart_timer :test }
+        call.timer(:test, 1) { done }
+      end
+      (Time.now-start).should be_close(1.5, 0.2)
+    end
+  end
 
 end
