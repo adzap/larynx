@@ -178,6 +178,7 @@ module Larynx
       @input << @response.body[:dtmf_digit]
       interrupt_command
       notify_observers :dtmf_received, @response.body[:dtmf_digit]
+      send_next_command if @state == :ready
     end
 
     def current_command

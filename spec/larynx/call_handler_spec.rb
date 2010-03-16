@@ -239,6 +239,12 @@ describe Larynx::CallHandler do
       call.sent_data.should_not match(/break/)
     end
 
+    it "should send next command if state is ready" do
+      call.state = :ready
+      call.should_receive(:send_next_command)
+      call.send_response :dtmf
+    end
+
     it "should notify observers and pass digit" do
       app = mock('App')
       call.add_observer! app
