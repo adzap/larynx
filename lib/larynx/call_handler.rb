@@ -34,7 +34,6 @@ module Larynx
     end
 
     def subscribe_to_events(&block)
-      # execute ApiCommand.new('event plain ALL', &block)
       execute ApiCommand.new('myevents', &block)
     end
 
