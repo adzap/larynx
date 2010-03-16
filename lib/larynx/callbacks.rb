@@ -24,7 +24,7 @@ module Larynx
 
     module InstanceMethods
       def fire_callback(callback, *args)
-        @callbacks[callback] && @callbacks[callback].call(*args)
+        @callbacks && @callbacks[callback] && @callbacks[callback].call(*args)
       end
     end
 
