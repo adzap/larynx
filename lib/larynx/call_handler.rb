@@ -159,7 +159,7 @@ module Larynx
         @state = :executing
       when @response.executed? && current_command
         finalize_command
-        send_next_command unless last_command.command == 'break'
+        send_next_command unless command_broken?
         @state = :ready
       when @response.dtmf?
         log "Button pressed: #{@response.body[:dtmf_digit]}"
@@ -186,6 +186,10 @@ module Larynx
 
     def last_command
       @last_command
+    end
+
+    def command_broken?
+      last_command && last_command.command == 'break'
     end
 
     def run_command_setup
