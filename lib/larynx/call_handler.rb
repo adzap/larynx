@@ -3,7 +3,7 @@ module Larynx
     include Observable
     include Commands
 
-    attr_reader :state, :session, :input, :observers
+    attr_reader :state, :session, :input, :observers, :last_command
 
     # EM hook which is run when call is received
     def post_init
@@ -139,10 +139,6 @@ module Larynx
 
     def current_command
       @queue.first
-    end
-
-    def last_command
-      @last_command
     end
 
     def command_broken?
