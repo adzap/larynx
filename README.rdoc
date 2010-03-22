@@ -1,0 +1,101 @@
+= Larynx
+
+A framework to develop IVR applications in Ruby for the FreeSWITCH (FS) telephony platform. It is used
+with the FS event socket library to easily develop IVR applications in an asynchronous fashion.
+
+It offer some useful functions and classes on top the default FreeSWITCH dialplan commands to make
+application development easier.
+
+== Install
+
+On Rubygems.org:
+
+  sudo gem install larynx
+
+You will need to have the FreeSWITCH server installed somewhere you can control.
+
+== Example
+
+Using the bare Application class, below is a guessing game.
+
+  class Guess < Larynx::Application
+    def run
+      @number = rand(9) + 1
+      @attempts = 0
+      get_guess
+    end
+
+    def get_guess
+      if @attempts < 3
+        call.speak('Guess a number between 1 and 9') {
+          @attempts += 1
+        }
+      else
+        call.speak('You are out of guesses. Thanks for playing.') {
+          call.hangup
+        }
+      end
+    end
+
+    def check_guess
+      if @guess.to_i == @number
+        call.speak "You got it! It was #{@guess}. Thanks for playing."
+        call.hangup
+      else
+        call.speak "No it's not #{@guess}."
+        get_guess
+      end
+    end
+
+    def dtmf_received(input)
+      @guess = input
+      check_guess
+    end
+  end
+
+  Larynx.answer {|call| Guess.run(call) }
+
+A more sophisticated example using the Form class
+
+  class Guess < Larynx::Form
+    field(:guess, :attempts => 3, :length => 1) do
+      prompt :speak => 'Guess a number between 1 and 9.'
+      reprompt :speak => 'Have another guess.'
+
+      setup do
+        @number = rand(9) + 1
+        @guesses = 0
+      end
+
+      validate do
+        @guesses += 1 if guess.size > 0
+        @number == guess.to_i
+      end
+
+      invalid do
+        if guess.size > 0
+          call.speak "No, it's not #{guess}.", :bargein => false
+        end
+      end
+
+      success do
+        call.speak "You got it! It was #{guess}. It took you #{@guesses} guesses.", :bargein => false
+        call.hangup
+      end
+
+      failure do
+        call.speak "Sorry you didn't guess it. It was #{@number}. Try again soon.", :bargein => false
+        call.hangup
+      end
+    end
+  end
+
+  Larynx.answer {|call| Guess.run(call) }
+
+
+The Form class wraps up many handy conventions into a pleasant DSL in which allows you to control the user
+interaction more easily.
+
+
+== Configure FreeSWTICH
+
