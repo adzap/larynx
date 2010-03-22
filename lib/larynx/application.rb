@@ -15,5 +15,9 @@ module Larynx
     def run
       #override for setup
     end
+
+    def log(msg)
+      app.call.log(msg)
+    end
   end
 end

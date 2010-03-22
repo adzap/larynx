@@ -167,9 +167,7 @@ module Larynx
     end
 
     def log(msg)
-      time = Time.now
-      usec = (".#{time.usec}".to_f * 1_000_000).to_i
-      puts "[#{time.strftime('%F %T')}.#{usec}] #{msg.strip}"
+      LARYNX_LOGGER.info msg
     end
 
   end

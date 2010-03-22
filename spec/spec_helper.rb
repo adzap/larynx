@@ -7,6 +7,7 @@ require 'rubygems'
 require 'em-spec/rspec'
 require 'larynx'
 
+LARYNX_LOGGER = Logger.new(STDOUT)
 RESPONSES = {}
 Dir['spec/fixtures/*.rb'].each {|file| require file }
 
@@ -23,6 +24,7 @@ class TestCallHandler < Larynx::CallHandler
   end
 
   def log(msg)
+    (@log ||= '') << msg
   end
 end
 
