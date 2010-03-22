@@ -247,7 +247,7 @@ describe Larynx::CallHandler do
 
     it "should notify observers and pass digit" do
       app = mock('App')
-      call.add_observer! app
+      call.add_observer app
       app.should_receive(:dtmf_received).with('1')
       call.send_response :dtmf
     end

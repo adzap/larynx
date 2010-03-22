@@ -139,7 +139,7 @@ describe Larynx::Prompt do
 
     it "should remove prompt as call observer" do
       prompt = new_prompt
-      call.should_receive(:remove_observer!).with(prompt)
+      call.should_receive(:remove_observer).with(prompt)
       prompt.finalise
     end
   end

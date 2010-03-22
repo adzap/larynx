@@ -17,7 +17,7 @@ module Larynx
           if prompt_finished?
             finalise
           else
-            call.add_observer! self
+            call.add_observer self
             add_digit_timer
             add_input_timer
           end
@@ -49,7 +49,7 @@ module Larynx
     end
 
     def finalise
-      call.remove_observer! self
+      call.remove_observer self
       @block.call(input)
     end
 

@@ -1,12 +1,12 @@
 module Larynx
   module Observable
 
-    def add_observer!(object)
+    def add_observer(object)
       @observers ||= []
       @observers << object
     end
 
-    def remove_observer!(object)
+    def remove_observer(object)
       @observers && @observers.delete(object)
     end
 

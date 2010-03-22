@@ -4,7 +4,7 @@ module Larynx
 
     def self.run(call)
       app = self.new(call)
-      call.add_observer! app
+      call.add_observer app
       app.run
     end
 
