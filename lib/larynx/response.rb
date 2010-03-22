@@ -1,10 +1,13 @@
 module Larynx
   class Response
-    include Parser
     attr_reader :header, :body
 
     def initialize(header, body)
-      @header, @body = parse(header), parse(body)
+      @header = CallHandler.headers_2_hash(header)
+      if body
+        @body = body.match(/:/) ? CallHandler.headers_2_hash(body) : body
+        @body.each {|k,v| v.chomp! if v.is_a?(String)}
+      end
     end
 
     def reply?
@@ -32,24 +35,23 @@ module Larynx
     end
 
     def command_name
-      @body[:application]
+      @body[:application] if @body
     end
 
     def event_name
-      @body[:event_name]
+      @body[:event_name] if @body
     end
 
     def dtmf?
-      @body[:event_name] == 'DTMF'
+      @body[:event_name] == 'DTMF' if @body
     end
 
     def speech?
-      @body[:event_name] == 'DETECTED_SPEECH'
+      @body[:event_name] == 'DETECTED_SPEECH' if @body
     end
 
     def disconnect?
       @header[:content_type] == 'text/disconnect-notice'
     end
-
   end
 end
