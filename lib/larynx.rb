@@ -78,6 +78,10 @@ module Larynx
     end
 
     def setup_app
+      if ARGV[0].nil?
+        $stderr.puts "You must specify an application file"
+        exit -1
+      end
       Object.const_set "LARYNX_ROOT", File.expand_path(File.dirname(ARGV[0]))
       require File.expand_path(ARGV[0], LARYNX_ROOT)
     end
