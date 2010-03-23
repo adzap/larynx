@@ -23,13 +23,25 @@ module Larynx
     end
   end
 
-  class ApiCommand < Command
+  class CallCommand < Command
     def name
       "#{@command}#{" #{@params}" if @params}"
     end
 
     def to_s
       cmd =  "#{@command}"
+      cmd << " #{@params}" if @params
+      cmd << "\n\n"
+    end
+  end
+
+  class ApiCommand < Command
+    def name
+      "#{@command}#{" #{@params}" if @params}"
+    end
+
+    def to_s
+      cmd =  "api #{@command}"
       cmd << " #{@params}" if @params
       cmd << "\n\n"
     end

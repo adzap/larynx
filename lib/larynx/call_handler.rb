@@ -20,15 +20,13 @@ module Larynx
     end
 
     def start_session
-      subscribe_to_events {
-        filter_events {
-          linger_for_events
-          answer {
-            log 'Answered call'
-            @state = :ready
-            Larynx.fire_callback(:answer, self)
-          }
-        }
+      myevents {
+				linger
+				answer {
+					log 'Answered call'
+					@state = :ready
+					Larynx.fire_callback(:answer, self)
+				}
       }
     end
 
@@ -105,7 +103,7 @@ module Larynx
       @response = Response.new(header, content)
 
       case
-      when @response.reply? && current_command.is_a?(ApiCommand)
+      when @response.reply? && !current_command.is_a?(AppCommand)
         log "Completed: #{current_command.name}"
         finalize_command
         send_next_command

@@ -168,28 +168,20 @@ describe Larynx::CallHandler do
       call.session = mock('session', :unique_id => '123')
     end
 
-    it "should subscribe to events" do
-      call.should_receive(:subscribe_to_events)
+    it "should subscribe to myevents" do
+      call.should_receive(:myevents)
       call.start_session
-    end
-
-    it "should filter events after subscribe" do
-      call.should_receive(:filter_events)
-      call.start_session
-      call.send_response :reply_ok
     end
 
     it "should set event lingering on after filter events" do
-      call.should_receive(:linger_for_events)
+      call.should_receive(:linger)
       call.start_session
-      call.send_response :reply_ok
       call.send_response :reply_ok
     end
 
     it "should answer call after filter events" do
       call.should_receive(:answer)
       call.start_session
-      call.send_response :reply_ok
       call.send_response :reply_ok
     end
   end

@@ -2,7 +2,19 @@ module Larynx
   module Commands
 
     def connect(&block)
-      execute ApiCommand.new('connect', &block)
+      execute CallCommand.new('connect', &block)
+    end
+
+    def myevents(&block)
+      execute CallCommand.new('myevents', &block)
+    end
+
+    def filter(type, &block)
+      execute CallCommand.new('filter', type, &block)
+    end
+
+    def linger(&block)
+      execute CallCommand.new('linger', &block)
     end
 
     def answer(&block)
@@ -28,18 +40,6 @@ module Larynx
 
     def prompt(options={}, &block)
       execute Prompt.new(self, options, &block).command
-    end
-
-    def subscribe_to_events(&block)
-      execute ApiCommand.new('myevents', &block)
-    end
-
-    def filter_events(&block)
-      execute ApiCommand.new('filter', "Unique-ID #{@session.unique_id}", &block)
-    end
-
-    def linger_for_events(&block)
-      execute ApiCommand.new('linger', &block)
     end
 
     def break!

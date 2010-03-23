@@ -23,6 +23,20 @@ describe Larynx::Command do
     @callback.should be_true
   end
 
+  context 'call command' do
+    before do
+      @cmd = Larynx::CallCommand.new('dummy', 'arg')
+    end
+
+    it "should return name as command and params" do
+      @cmd.name.should == 'dummy arg'
+    end
+
+    it "should return to_s as full command message" do
+      @cmd.to_s.should == "dummy arg\n\n"
+    end
+  end
+
   context 'api command' do
     before do
       @cmd = Larynx::ApiCommand.new('dummy', 'arg')
@@ -33,7 +47,7 @@ describe Larynx::Command do
     end
 
     it "should return to_s as full command message" do
-      @cmd.to_s.should == "dummy arg\n\n"
+      @cmd.to_s.should == "api dummy arg\n\n"
     end
   end
 
