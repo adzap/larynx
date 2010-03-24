@@ -8,11 +8,9 @@ module Larynx
     # EM hook which is run when call is received
     def post_init
       @queue, @input, @timers = [], [], {}
-      @state = :initiated
       connect {
         @session = Session.new(@response.header)
         log "Call received from #{caller_id}"
-        @state = :connected
         Larynx.fire_callback(:connect, self)
         start_session
       }
@@ -24,7 +22,6 @@ module Larynx
 				linger
 				answer {
 					log 'Answered call'
-					@state = :ready
 					Larynx.fire_callback(:answer, self)
 				}
       }
@@ -106,6 +103,7 @@ module Larynx
       when @response.reply? && !current_command.is_a?(AppCommand)
         log "Completed: #{current_command.name}"
         finalize_command
+        @state = :ready
         send_next_command
       when @response.executing?
         log "Executing: #{current_command.name}"
@@ -113,8 +111,10 @@ module Larynx
         @state = :executing
       when @response.executed? && current_command
         finalize_command
-        send_next_command unless command_broken?
-        @state = :ready
+				unless command_broken?
+					@state = :ready
+					send_next_command
+				end
       when @response.dtmf?
         log "Button pressed: #{@response.body[:dtmf_digit]}"
         handle_dtmf
@@ -156,6 +156,7 @@ module Larynx
 
     def send_next_command
       if current_command
+        @state = :sending
         send_data current_command.to_s
       end
     end

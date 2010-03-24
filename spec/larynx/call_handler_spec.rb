@@ -121,25 +121,14 @@ describe Larynx::CallHandler do
     end
   end
 
-  context "initialisation" do
-    it "should queue connect command on init" do
-      call.current_command.name.should == 'connect'
-    end
-
-    it "should set state to initiated" do
-      call.state.should == :initiated
-    end
-  end
+	it "should queue connect command on init" do
+		call.current_command.name.should == 'connect'
+	end
 
   context "on connection" do
     it "should create session object" do
       connect_call
       call.session.should_not be_nil
-    end
-
-    it "should change state to connected" do
-      connect_call
-      call.state.should == :connected
     end
 
     it "should fire global connect callback" do
