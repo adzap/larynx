@@ -1,6 +1,15 @@
 module Larynx
   class NoPromptCommandValue < StandardError; end
 
+	# The prompt class neatly wraps up a convention where you prompt for input of
+	# certain length. The prompt waits until the required input length is reached,
+	# the user presses the terminator button or the time runs out. Think of the
+	# play_and_get_digits command except it works for speak as well. It also
+	# provides a bargein option to allow or prevent the user from interrupting
+	# the speech or playback.
+	#
+	# Pass a block to the method as a callback which receives input as an argument.
+	#
   class Prompt
     attr_reader :call
 
