@@ -81,7 +81,7 @@ module Larynx
         exit -1
       end
       Object.const_set "LARYNX_ROOT", File.expand_path(File.dirname(ARGV[0]))
-      require File.expand_path(ARGV[0], LARYNX_ROOT)
+      require File.expand_path(ARGV[0])
     end
 
     def start_server
