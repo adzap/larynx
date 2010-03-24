@@ -1,3 +1,4 @@
+# FIXME interrupted commands callback can be fired out of order if new command sent on break
 module Larynx
   class CallHandler < EventMachine::Protocols::HeaderAndContentProtocol
     include Observable
@@ -111,7 +112,7 @@ module Larynx
         @state = :executing
       when @response.executed? && current_command
         finalize_command
-				unless command_broken?
+				unless interrupted?
 					@state = :ready
 					send_next_command
 				end
@@ -139,7 +140,11 @@ module Larynx
       @queue.first
     end
 
-    def command_broken?
+    def interrupting?
+      current_command && current_command.command == 'break'
+    end
+
+    def interrupted?
       last_command && last_command.command == 'break'
     end
 
