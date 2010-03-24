@@ -1,10 +1,13 @@
 = Larynx
 
 A framework to develop IVR applications in Ruby for the FreeSWITCH (FS) telephony platform. It is used
-with the FS event socket library to easily develop IVR applications in an asynchronous fashion.
+with the FS event socket module to easily develop IVR applications in an asynchronous fashion.
 
 It offer some useful functions and classes on top the default FreeSWITCH dialplan commands to make
 application development easier.
+
+Larynx currently implements an 'outbound' socket listener for incoming calls to be handled. An 'inbound'
+module will probably follow soon enough.
 
 == Install
 
@@ -98,4 +101,14 @@ interaction more easily.
 
 
 == Configure FreeSWTICH
+
+To set up a dialplan which connects to your app read http://wiki.freeswitch.org/wiki/Event_Socket
+
+Also take a look at the http://wiki.freeswitch.org/wiki/Event_socket_outbound for background.
+
+
+== Commands
+
+
+
 
