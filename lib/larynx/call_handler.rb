@@ -4,7 +4,7 @@ module Larynx
     include Observable
     include Commands
 
-    attr_reader :state, :session, :input, :observers, :last_command
+    attr_reader :state, :session, :response, :input, :observers, :last_command
 
     # EM hook which is run when call is received
     def post_init
