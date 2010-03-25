@@ -8,14 +8,16 @@ class Guess < Larynx::Application
 
 	def get_guess
 		if @guesses < 3
-			speak(guess_prompt) {
-				@guesses += 1
-			}
+			speak(guess_prompt) { @guesses += 1 }
 		else
 			speak "Sorry you didn't guess it. It was #{@number}. Try again soon.", :bargein => false
 			hangup
 		end
 	end
+
+  def guess_prompt
+    @guesses == 0 ? 'Guess a number between 1 and 9.' : 'Have another guess.'
+  end
 
 	def check_guess
 		if @guess.to_i == @number
@@ -27,10 +29,6 @@ class Guess < Larynx::Application
 			get_guess
 		end
 	end
-
-  def guess_prompt
-    @guesses == 0 ? 'Guess a number between 1 and 9.' : 'Have another guess.'
-  end
 
 	def dtmf_received(input)
 		@guess = input
