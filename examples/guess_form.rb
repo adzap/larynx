@@ -1,7 +1,7 @@
 class Guess < Larynx::Form
 	field(:guess, :attempts => 3, :length => 1) do
-		prompt :speak => 'Guess a number between 1 and 9.'
-		reprompt :speak => 'Have another guess.'
+		prompt :speak => 'Guess a number between 1 and 9.', :interdigit_timeout => 6
+		reprompt :speak => 'Have another guess.', :interdigit_timeout => 6
 
 		setup do
 			@number = rand(9) + 1

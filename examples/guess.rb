@@ -7,7 +7,6 @@ class Guess < Larynx::Application
 	end
 
 	def get_guess
-    $stdout.puts @guesses
 		if @guesses < 3
 			speak(guess_prompt) {
 				@guesses += 1
