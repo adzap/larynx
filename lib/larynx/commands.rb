@@ -25,17 +25,55 @@ module Larynx
       execute AppCommand.new('hangup', &block)
     end
 
-    def playback(text, options={}, &block)
-      execute AppCommand.new('playback', text, options, &block)
+    def playback(data, options={}, &block)
+      execute AppCommand.new('playback', data, options, &block)
     end
     alias_method :play, :playback
 
-    def speak(text, options={}, &block)
-      execute AppCommand.new('speak', text, options, &block)
+    def speak(data, options={}, &block)
+      execute AppCommand.new('speak', data, options, &block)
     end
 
-    def phrase(text, options={}, &block)
-      execute AppCommand.new('phrase', text, options, &block)
+    def phrase(data, options={}, &block)
+      execute AppCommand.new('phrase', data, options, &block)
+    end
+
+
+    # Executes read command with some default values.
+    # Allows length option which expands into minimum and maximum length values. Length can be a range.
+    # Passes user input into callback block.
+    #
+    # Defaults:
+    #    timeout:  5000 or 5 seconds
+    #    termchar: #
+    #
+    # Example:
+    #
+    #   read(:minimum => 1, :maximum => 2, :sound_file => 'en/us/callie/conference/8000/conf-pin.wav') {|input|
+    #     speak "You entered #{input}"
+    #   }
+    #
+    # Or
+    #
+    #   read(:length => 1..2, :sound_file => 'en/us/callie/conference/8000/conf-pin.wav') {|input|
+    #     speak "You entered #{input}"
+    #   }
+    #
+    def read(options={}, &block)
+      options.reverse_merge!(:timeout => 5000, :var_name => 'read_result', :termchar => '#')
+      options[:bargein] = false
+
+      if length = options.delete(:length)
+        values = length.is_a?(Range) ? [length.first, length.last] : [length, length]
+        options.merge!(:minimum => values[0], :maximum => values[1])
+      end
+
+      order = [:minimum, :maximum, :sound_file, :var_name, :timeout, :termchar]
+      data  = order.inject('') {|data, key| data += " #{options[key]}"; data }.strip
+
+      execute AppCommand.new('read', data, options).after {
+        block.call(response.body[:variable_read_result])
+      }
     end
 
     def prompt(options={}, &block)
