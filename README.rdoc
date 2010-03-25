@@ -19,51 +19,60 @@ You will need to have the FreeSWITCH server installed somewhere you can control.
 
 == Example
 
+Simplest possible
+
+  Larynx.answer {|call|
+    call.speak 'Hello world! Or whoever you are.'
+  }
+
 Using the bare Application class, below is a guessing game.
 
-  class Guess < Larynx::Application
-    def run
-      @number = rand(9) + 1
-      @attempts = 0
-      get_guess
-    end
+class Guess < Larynx::Application
+	def run
+		@number = rand(9) + 1
+    @guess = ''
+		@guesses = 0
+		get_guess
+	end
 
-    def get_guess
-      if @attempts < 3
-        call.speak('Guess a number between 1 and 9') {
-          @attempts += 1
-        }
-      else
-        call.speak('You are out of guesses. Thanks for playing.') {
-          call.hangup
-        }
-      end
-    end
+	def get_guess
+		if @guesses < 3
+			speak(guess_prompt) { @guesses += 1 }
+		else
+			speak "Sorry you didn't guess it. It was #{@number}. Try again soon.", :bargein => false
+			hangup
+		end
+	end
 
-    def check_guess
-      if @guess.to_i == @number
-        call.speak "You got it! It was #{@guess}. Thanks for playing."
-        call.hangup
-      else
-        call.speak "No it's not #{@guess}."
-        get_guess
-      end
-    end
-
-    def dtmf_received(input)
-      @guess = input
-      check_guess
-    end
+  def guess_prompt
+    @guesses == 0 ? 'Guess a number between 1 and 9.' : 'Have another guess.'
   end
 
-  Larynx.answer {|call| Guess.run(call) }
+	def check_guess
+		if @guess.to_i == @number
+			speak "You got it! It was #{@guess}. It took you #{@guesses} guesses.", :bargein => false
+			speak "Thanks for playing."
+			hangup
+		else
+			speak "No it's not #{@guess}."
+			get_guess
+		end
+	end
+
+	def dtmf_received(input)
+		@guess = input
+		check_guess
+	end
+end
+
+Larynx.answer {|call| Guess.run(call) }
 
 A more sophisticated example using the Form class
 
   class Guess < Larynx::Form
     field(:guess, :attempts => 3, :length => 1) do
-      prompt :speak => 'Guess a number between 1 and 9.'
-      reprompt :speak => 'Have another guess.'
+      prompt :speak => 'Guess a number between 1 and 9.', :interdigit_timeout => 6
+      reprompt :speak => 'Have another guess.', :interdigit_timeout => 6
 
       setup do
         @number = rand(9) + 1
@@ -77,27 +86,32 @@ A more sophisticated example using the Form class
 
       invalid do
         if guess.size > 0
-          call.speak "No, it's not #{guess}.", :bargein => false
+          speak "No, it's not #{guess}.", :bargein => false
         end
       end
 
       success do
-        call.speak "You got it! It was #{guess}. It took you #{@guesses} guesses.", :bargein => false
-        call.hangup
+        speak "You got it! It was #{guess}. It took you #{@guesses} guesses.", :bargein => false
+        hangup
       end
 
       failure do
-        call.speak "Sorry you didn't guess it. It was #{@number}. Try again soon.", :bargein => false
-        call.hangup
+        speak "Sorry you didn't guess it. It was #{@number}. Try again soon.", :bargein => false
+        hangup
       end
     end
   end
 
   Larynx.answer {|call| Guess.run(call) }
 
-
 The Form class wraps up many handy conventions into a pleasant DSL in which allows you to control the user
 interaction more easily.
+
+Save your app into file and run larynx comand to start the app server ready to receive calls.
+
+  $ larynx app.rb
+
+Now make a call to extension 2000 with a SIP phone. Your app should start.
 
 
 == Configure FreeSWTICH
@@ -106,9 +120,72 @@ To set up a dialplan which connects to your app read http://wiki.freeswitch.org/
 
 Also take a look at the http://wiki.freeswitch.org/wiki/Event_socket_outbound for background.
 
+Example socket diaplan:
 
-== Commands
+  <include>
+     <extension name="outbound_socket">
+       <condition field="destination_number" expression="^2000$">
+         <action application="socket" data="localhost:8084 async full" />
+       </condition>
+     </extension>
+  </include>
+
+Which connects calls to destination number 2000 to your event socket app.
 
 
+== Global Hooks
+
+Larynx provides three globals hooks you can use to perform some action at each point.
+The are:
+
+  Larynx.connect {|call|
+    # you can choose to hangup the call here if you wish
+  }
+
+  Larynx.answer {|call|
+    # call is answered and ready to interact with the caller
+  }
+
+  Larynx.hungup {|call|
+    # finish off any logging or some such
+  }
+
+Mainly you just use the answer hook. From the examples you can see can start sending commands or
+start an application class running. You write an app just in this block but you don't want to.
+
+
+== Application Class
+
+The application adds a sprinkling of convenience for handling a call, plus you can store instance
+variables and create methods for structuring you app better.
+
+The application should define a run instance method which is used to kick it off when you call
+
+  MyApp.run(call)
+
+The class method initialises some things for you and then calls <tt>run</tt> on the instance. From
+there its up to you. You can use all the commands directly rather than call them on the call
+instance.
+
+== Form Class
+
+
+
+== Event Hooks
+
+The Application and Form classes have a couple of useful event hook methods available which are
+
+  class MyApp < Larynx::Application
+    def run
+    end
+
+    def dtmf_received(input)
+      # input is the button the user just pushed
+    end
+
+    def hungup
+      # application specific handling of a hangup
+    end
+  end
 
 
