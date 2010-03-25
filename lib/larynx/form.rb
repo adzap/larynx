@@ -1,6 +1,7 @@
 module Larynx
   class Form < Application
     include Fields
+    @@setup = nil
 
     def self.setup(&block)
       @@setup = block
