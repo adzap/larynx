@@ -2,6 +2,7 @@ module Larynx
   class Command
     include Callbacks
     attr_reader :command
+    attr_accessor :interrupted
 
     define_callback :before, :after
 
@@ -20,6 +21,10 @@ module Larynx
 
     def interruptable?
       false
+    end
+
+    def interrupted?
+      @interrupted
     end
   end
 

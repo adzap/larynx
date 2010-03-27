@@ -1,4 +1,3 @@
-# FIXME interrupted commands callback can be fired out of order if new command sent on break
 module Larynx
   class CallHandler < EventMachine::Protocols::HeaderAndContentProtocol
     include Observable
@@ -36,14 +35,16 @@ module Larynx
       @session[:caller_caller_id_number]
     end
 
-    def interrupt_command
-      if @state == :executing && current_command.interruptable?
-        break!
-      end
-    end
-
     def clear_input
       @input = []
+    end
+
+    def current_command
+      @queue.first
+    end
+
+    def next_command
+      @queue[1]
     end
 
     def execute(command, immediately=false)
@@ -110,12 +111,14 @@ module Larynx
         log "Executing: #{current_command.name}"
         run_command_setup
         @state = :executing
-      when @response.executed? && current_command
+      when @response.executed?
+        this_command = current_command
         finalize_command
-				unless interrupted?
-					@state = :ready
-					send_next_command
-				end
+        unless this_command.interrupted?
+          current_command.fire_callback(:after) if this_command.command == 'break'
+          @state = :ready
+          send_next_command
+        end
       when @response.dtmf?
         log "Button pressed: #{@response.body[:dtmf_digit]}"
         handle_dtmf
@@ -136,16 +139,11 @@ module Larynx
       send_next_command if @state == :ready
     end
 
-    def current_command
-      @queue.first
-    end
-
-    def interrupting?
-      current_command && current_command.command == 'break'
-    end
-
-    def interrupted?
-      last_command && last_command.command == 'break'
+    def interrupt_command
+      if @state == :executing && current_command.interruptable?
+        current_command.interrupted = true
+        break!
+      end
     end
 
     def run_command_setup
@@ -154,15 +152,19 @@ module Larynx
 
     def finalize_command
       if command = @queue.shift
-        command.fire_callback :after
+        command.fire_callback(:after) unless command.interrupted?
         @last_command = command
       end
     end
 
+    def command_to_send
+      current_command.try(:interrupted?) ? next_command : current_command
+    end
+
     def send_next_command
-      if current_command
+      if command = command_to_send
         @state = :sending
-        send_data current_command.to_s
+        send_data command.to_s
       end
     end
 

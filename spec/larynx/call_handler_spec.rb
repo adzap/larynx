@@ -241,6 +241,50 @@ describe Larynx::CallHandler do
     end
   end
 
+  context "interrupting a command" do
+    before do
+      call.queue = []
+      @executing_command = call.speak('hello', :bargein => true) { call.speak 'next hello' }
+      call.send_next_command
+      call.send_response :execute
+      call.interrupt_command
+    end
+
+    it "should push break onto front of queue" do
+      call.queue[0].command.should == 'break'
+      call.queue[1].should == @executing_command
+    end
+
+    it "should execute break immediately" do
+      call.sent_data.should match(/break/)
+    end
+
+    it "should set executing command to interrupted" do
+      @executing_command.interrupted?.should be_true
+    end
+
+    it "should fire callback of interrupted command when break execute complete" do
+      @executing_command.should_receive(:fire_callback).with(:after).once
+      call.send_response :execute_complete
+    end
+
+    it "should leave executing command in queue" do
+      call.send_response :execute_complete
+      call.queue[0].should == @executing_command
+    end
+
+    it "should execute next command after interrupted command" do
+      call.send_response :execute_complete
+      call.sent_data.should match(/next hello/)
+    end
+
+    it "should not fire callback of interrupted command once execute complete" do
+      call.send_response :execute_complete
+      @executing_command.should_not_receive(:fire_callback).with(:after)
+      call.send_response :execute_complete
+    end
+  end
+
   context "timer" do
     it "should add EM timer with name and timeout" do
       Larynx::RestartableTimer.stub!(:new)
