@@ -60,6 +60,7 @@ module Larynx
     def finalise
       call.remove_observer self
       @block.call(input)
+      call.clear_input
     end
 
     def dtmf_received(digit)

@@ -142,11 +142,17 @@ describe Larynx::Prompt do
       call.should_receive(:remove_observer).with(prompt)
       prompt.finalise
     end
+
+    it "should clear input" do
+      prompt = new_prompt
+      call.should_receive(:clear_input)
+      prompt.finalise
+    end
   end
 
   context "user callback" do
     it "should be passed input argument equal to call input" do
-      prompt = new_prompt {|input| @callback = '1'}
+      prompt = new_prompt {|input| @callback = input }
       call.input << '1'
       after_callback prompt
       @callback.should == '1'
