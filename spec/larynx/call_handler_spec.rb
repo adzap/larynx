@@ -288,13 +288,13 @@ describe Larynx::CallHandler do
   context "timer" do
     it "should add EM timer with name and timeout" do
       Larynx::RestartableTimer.stub!(:new)
-      call.timer(:test, 0.1)
+      call.add_timer(:test, 0.1)
       call.timers[:test].should_not be_nil
     end
 
     it "should run callback on timeout" do
       em do
-        call.timer(:test, 0.2) { @callback = true; done }
+        call.add_timer(:test, 0.2) { @callback = true; done }
       end
       @callback.should be_true
     end
@@ -303,7 +303,7 @@ describe Larynx::CallHandler do
   context "stop_timer" do
     it "should run callback on timeout" do
       em do
-        call.timer(:test, 1) { @callback = true }
+        call.add_timer(:test, 1) { @callback = true }
         EM::Timer.new(0.1) { call.stop_timer :test; done }
       end
       @callback.should be_true
@@ -313,7 +313,7 @@ describe Larynx::CallHandler do
   context "cancel_timer" do
     it "should not run callback" do
       em do
-        call.timer(:test, 0.2) { @callback = true }
+        call.add_timer(:test, 0.2) { @callback = true }
         EM::Timer.new(0.1) { call.cancel_timer :test; done }
       end
       @callback.should_not be_true
@@ -325,7 +325,7 @@ describe Larynx::CallHandler do
       start = Time.now
       em do
         EM::Timer.new(0.5) { call.restart_timer :test }
-        call.timer(:test, 1) { done }
+        call.add_timer(:test, 1) { done }
       end
       (Time.now-start).should be_close(1.5, 0.2)
     end

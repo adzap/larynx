@@ -73,14 +73,14 @@ module Larynx
     end
 
     def add_digit_timer
-      call.timer(:digit, @options[:interdigit_timeout]) {
+      call.add_timer(:digit, @options[:interdigit_timeout]) {
         call.cancel_timer :input
         finalise
       }
     end
 
     def add_input_timer
-      call.timer(:input, @options[:timeout]) {
+      call.add_timer(:input, @options[:timeout]) {
         call.cancel_timer :digit
         finalise
       }

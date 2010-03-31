@@ -85,17 +85,18 @@ describe Larynx::Prompt do
   context "after callback" do
     context "input completed" do
       it "should not add timers if reached length" do
+        prompt = new_prompt
+        prompt.should_not_receive(:add_digit_timer)
+        prompt.should_not_receive(:add_input_timer)
         call.input << '1'
-        call.should_not_receive(:timer).with(:digit, anything())
-        call.should_not_receive(:timer).with(:input, anything())
-        after_callback new_prompt
+        after_callback prompt
       end
 
       it "should not add timers if termchar input" do
         prompt = new_prompt(:speak => 'hello', :length => 2, :termchar => '#')
+        prompt.should_not_receive(:add_digit_timer)
+        prompt.should_not_receive(:add_input_timer)
         call.input << '#'
-        call.should_not_receive(:timer).with(:digit, anything())
-        call.should_not_receive(:timer).with(:input, anything())
         after_callback prompt
       end
 
@@ -109,14 +110,15 @@ describe Larynx::Prompt do
 
     context "input not completed" do
       it "should add timers" do
-        call.should_receive(:timer).with(:digit, anything())
-        call.should_receive(:timer).with(:input, anything())
-        after_callback new_prompt
+        prompt = new_prompt
+        prompt.should_receive(:add_digit_timer)
+        prompt.should_receive(:add_input_timer)
+        after_callback prompt
       end
 
       it "should add itself as call observer" do
         prompt = new_prompt
-        call.stub!(:timer)
+        call.stub!(:add_timer)
         after_callback prompt
         call.observers.should include(prompt)
       end
