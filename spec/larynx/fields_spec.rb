@@ -86,16 +86,18 @@ describe Larynx::Fields do
       fld.current_prompt.message.should == 'second'
     end
 
-    context 'valid?' do
+    context 'valid_length?' do
       it 'should be false if input size less than minimum' do
         fld = field(:guess) do
           prompt :speak => 'first'
         end
         fld.run app
         fld.current_prompt.finalise
-        fld.valid?.should be_false
+        fld.valid_length?.should be_false
       end
+    end
 
+    context 'input evaluation' do
       it 'should run validate callback if input minimum length' do
         call_me = should_be_called
         fld = field(:guess, :min_length => 1) do
@@ -106,9 +108,7 @@ describe Larynx::Fields do
         call.input << '1'
         fld.current_prompt.finalise
       end
-    end
 
-    context 'input evaluation' do
       it 'should run invalid callback if length not valid' do
         call_me = should_be_called
         fld = field(:guess) do
@@ -183,6 +183,20 @@ describe Larynx::Fields do
         fld.should_receive(:execute_prompt)
         fld.current_prompt.finalise
       end
+    end
+
+    context "async callbacks" do
+      # it "should be run in thread" do
+      #   em do
+      #     fld = field(:guess) do
+      #       prompt :speak => 'first'
+      #       validate(:async) { sleep(0.25) }
+      #       success { done }
+      #     end.run(app)
+      #     call.input << '1'
+      #   end
+      #   @callback.should be_nil
+      # end
     end
 
   end

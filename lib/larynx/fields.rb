@@ -38,14 +38,70 @@ module Larynx
 
     end
 
-    class Field
-      include Callbacks
+    module CallbacksWithAsync
+      def self.included(base)
+        base.extend ClassMethods
+        base.cattr_accessor :callback_options
+        base.callback_options = {}
+        base.class_eval do
+          include InstanceMethods
+        end
+      end
 
-      attr_reader :name
-      define_callback :setup, :validate, :invalid, :success, :failure
+      module ClassMethods
+
+        def define_callback(*callbacks)
+          options = callbacks.extract_options!
+          callbacks.each do |callback|
+            self.callback_options[callback] = options
+            class_eval <<-DEF
+              def #{callback}(mode=:sync, &block)
+                @callbacks ||= {}
+                @callbacks[:#{callback}] = [block, mode]
+                self
+              end
+            DEF
+          end
+        end
+
+      end
+
+      module InstanceMethods
+
+        def fire_callback(callback)
+          if @callbacks && @callbacks[callback]
+            block, mode = *@callbacks[callback]
+            scope = self.class.callback_options[callback][:scope]
+            if mode == :async
+              EM.defer(scope_callback(block, scope), lambda {|result| callback_complete(callback, result) })
+            else
+              callback_complete(callback, scope_callback(block, scope).call)
+            end
+          else
+            callback_complete(callback, nil)
+          end
+        end
+
+        # Scope takes the callback block and a method symbol which is used
+        # to return an object that scopes the block evaluation.
+        def scope_callback(block, scope=nil)
+          scope ? lambda { send(scope).instance_eval(&block) } : block
+        end
+
+        def callback_complete(callback, result)
+          # Override in class to handle post callback result
+        end
+      end
+    end
+
+    class Field
+      include CallbacksWithAsync
+
+      attr_reader :name, :app
+      define_callback :setup, :validate, :invalid, :success, :failure, :scope => :app
 
       def initialize(name, options, &block)
-        @name, @callbacks = name, {}
+        @name = name
         @options = options.reverse_merge(:attempts => 3)
         @prompt_queue = []
 
@@ -82,36 +138,51 @@ module Larynx
 
       def execute_prompt
         call.execute current_prompt.command
+        send_next_command
       end
 
       def increment_attempts
         @attempt += 1
       end
 
-      def fire_callback(callback)
-        if block = @callbacks[callback]
-          @app.instance_eval(&block)
-        else
-          true
-        end
+      def valid_length?
+        @value.size >= minimum_length
       end
 
-      def valid?
-        @value.size >= minimum_length && fire_callback(:validate)
+      # hook called when callback is complete
+      def callback_complete(callback, result)
+        case callback
+        when :validate
+          result = result.nil? ? true : result
+          evaluate_validity(result)
+        when :invalid
+          invalid_input
+        when :success
+          send_next_command
+        when :failure
+          send_next_command
+        end
       end
 
       def evaluate_input
-        if valid?
-          fire_callback(:success)
+        valid_length? ? fire_callback(:validate) : fire_callback(:invalid)
+      end
+
+      def evaluate_validity(result)
+        result ? fire_callback(:success) : fire_callback(:invalid)
+      end
+
+      def invalid_input
+        if @attempt < @options[:attempts]
+          increment_attempts
+          execute_prompt
         else
-          fire_callback(:invalid)
-          if @attempt < @options[:attempts]
-            increment_attempts
-            execute_prompt
-          else
-            fire_callback(:failure)
-          end
+          fire_callback(:failure)
         end
+      end
+
+      def send_next_command
+        call.send_next_command if call.state == :ready
       end
 
       def set_instance_variables(input)
@@ -137,6 +208,7 @@ module Larynx
       def call
         @app.call
       end
+
     end
 
   end
