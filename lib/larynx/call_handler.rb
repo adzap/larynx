@@ -60,16 +60,18 @@ module Larynx
 
     def timer(name, timeout, &block)
       @timers[name] = [RestartableTimer.new(timeout) {
-        timer = @timers.delete(name)
+        timer = @timers[name]
         timer[1].call if timer[1]
+        @timers.delete(name)
         notify_observers :timed_out
         send_next_command if @state == :ready
       }, block]
     end
 
     def cancel_timer(name)
-      if timer = @timers.delete(name)
+      if timer = @timers[name]
         timer[0].cancel
+        @timers.delete(name)
         send_next_command if @state == :ready
       end
     end
@@ -79,9 +81,12 @@ module Larynx
     end
 
     def stop_timer(name)
-      if timer = @timers.delete(name)
-        timer[0].cancel
-        timer[1].call if timer[1]
+      if timer = @timers[name]
+        # only run callback if it was actually cancelled (i.e. returns false)
+        if timer[0].cancel == false && timer[1]
+          timer[1].call
+        end
+        @timers.delete(name)
         send_next_command if @state == :ready
       end
     end
