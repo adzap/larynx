@@ -60,9 +60,8 @@ module Larynx
 
     def add_timer(name, timeout, &block)
       @timers[name] = [RestartableTimer.new(timeout) {
-        timer = @timers[name]
+        timer = @timers.delete(name)
         timer[1].call if timer[1]
-        @timers.delete(name)
         notify_observers :timed_out
         send_next_command if @state == :ready
       }, block]
