@@ -5,21 +5,30 @@ module Larynx
 
     def self.included(base)
       base.extend ClassMethods
-      base.send :include, InstanceMethods
+      base.class_eval do
+        include InstanceMethods
+        cattr_accessor :field_definitions
+        self.field_definitions = []
+        attr_accessor :fields
+      end
     end
 
     module ClassMethods
-      attr_accessor :fields
 
       def field(name, options={}, &block)
-        @fields ||= []
-        @fields <<  {:name => name, :options => options, :block => block}
+        self.field_definitions <<  {:name => name, :options => options, :block => block}
         attr_accessor name
       end
 
     end
 
     module InstanceMethods
+
+      def initialize(*args, &block)
+        @fields = self.class.field_definitions.map {|field| Field.new(field[:name], field[:options], &field[:block]) }
+        @current_field = 0
+        super
+      end
 
       def next_field(field_name=nil)
         @current_field = index_of_field(field_name) if field_name

@@ -5,36 +5,41 @@ describe Larynx::Fields do
 
   before do
     @call = TestCallHandler.new(1)
-    @app = Larynx::Application.new(@call)
+    @app  = define_app.new(@call)
   end
 
   context 'module' do
-    include Larynx::Fields
+    before do
+      @app_class = define_app
+    end
 
     it 'should add field class method' do
-      self.class.should respond_to(:field)
+      @app_class.should respond_to(:field)
     end
 
     it 'should add instance accessor for field name' do
-      self.class.field(:guess) { prompt :speak => 'hello' }
-      self.methods.include?(:guess)
+      @app_class.field(:guess) { prompt :speak => 'hello' }
+      @app_class.methods.include?(:guess)
     end
   end
 
   context 'next_field' do
-    include Larynx::Fields
-    field(:field1) { prompt :speak => 'hello' }
-    field(:field2) { prompt :speak => 'hello' }
-    field(:field3) { prompt :speak => 'hello' }
+    before do
+      @app = define_app do
+        field(:field1) { prompt :speak => 'hello' }
+        field(:field2) { prompt :speak => 'hello' }
+        field(:field3) { prompt :speak => 'hello' }
+      end.new(call)
+    end
 
     it 'should iterate over defined fields' do
-      next_field.name.should == :field1
-      next_field.name.should == :field2
-      next_field.name.should == :field3
+      app.next_field.name.should == :field1
+      app.next_field.name.should == :field2
+      app.next_field.name.should == :field3
     end
 
     it 'should jump to field name if supplied' do
-      next_field(:field2).name.should == :field2
+      app.next_field(:field2).name.should == :field2
     end
   end
 
@@ -204,5 +209,12 @@ describe Larynx::Fields do
   def field(name, options={}, &block)
     @app.class.class_eval { attr_accessor name }
     Larynx::Fields::Field.new(name, options, &block)
+  end
+
+  def define_app(&block)
+    Class.new(Larynx::Application) do
+      include Larynx::Fields
+      instance_eval &block if block_given?
+    end
   end
 end
