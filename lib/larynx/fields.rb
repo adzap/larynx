@@ -13,7 +13,7 @@ module Larynx
 
       def field(name, options={}, &block)
         @fields ||= []
-        @fields << Field.new(name, options, &block)
+        @fields <<  {:name => name, :options => options, :block => block}
         attr_accessor name
       end
 
@@ -22,9 +22,8 @@ module Larynx
     module InstanceMethods
 
       def next_field(field_name=nil)
-        @current_field ||= 0
         @current_field = index_of_field(field_name) if field_name
-        if field = self.class.fields[@current_field]
+        if field = @fields[@current_field]
           field.run(self)
           @current_field += 1
           field
@@ -32,8 +31,8 @@ module Larynx
       end
 
       def index_of_field(name)
-        field = self.class.fields.find {|f| f.name == name }
-        self.class.fields.index(field)
+        field = @fields.find {|f| f.name == name }
+        @fields.index(field)
       end
 
     end
