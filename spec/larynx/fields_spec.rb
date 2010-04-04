@@ -57,6 +57,18 @@ describe Larynx::Fields do
       fld.run app
     end
 
+    it 'should pass timeout and length options to the prompt object' do
+      fld = field(:guess, :length => 1, :min_length => 1, :max_length => 2, :interdigit_timeout => 1, :timeout => 2) do
+        prompt :speak => 'first'
+      end
+      fld.run(app)
+      prompt = fld.current_prompt
+      prompt.interdigit_timeout.should == 1
+      prompt.timeout.should == 2
+      prompt.minimum_length.should == 1
+      prompt.maximum_length.should == 2
+    end
+
     it 'should return same prompt all attempts if single prompt' do
       fld = field(:guess) do
         prompt :speak => 'first'

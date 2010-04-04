@@ -45,8 +45,20 @@ module Larynx
       @options[:termchar]
     end
 
+    def minimum_length
+      @options[:min_length] || @options[:length] || 1
+    end
+
     def maximum_length
       @options[:max_length] || @options[:length]
+    end
+
+    def interdigit_timeout
+      @options[:interdigit_timeout]
+    end
+
+    def timeout
+      @options[:timeout]
     end
 
     def command_name
