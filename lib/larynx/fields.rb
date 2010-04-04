@@ -139,8 +139,8 @@ module Larynx
         message = options[method].is_a?(Symbol) ? @app.send(options[method]) : options[method]
         options[method] = message
 
-        Prompt.new(call, options) {|input|
-          set_instance_variables(input)
+        Prompt.new(call, options) {|input, result|
+          set_instance_variables(input, result)
           evaluate_input
         }
       end
@@ -152,10 +152,6 @@ module Larynx
 
       def increment_attempts
         @attempt += 1
-      end
-
-      def valid_length?
-        @value.size >= minimum_length
       end
 
       # hook called when callback is complete
@@ -174,7 +170,7 @@ module Larynx
       end
 
       def evaluate_input
-        valid_length? ? fire_callback(:validate) : fire_callback(:invalid)
+        @valid_length ? fire_callback(:validate) : fire_callback(:invalid)
       end
 
       def evaluate_validity(result)
@@ -194,17 +190,9 @@ module Larynx
         call.send_next_command if call.state == :ready
       end
 
-      def set_instance_variables(input)
-        @value = input
+      def set_instance_variables(input, result)
+        @value, @valid_length = input, result
         @app.send("#{@name}=", input)
-      end
-
-      def maximum_length
-        @options[:max_length] || @options[:length]
-      end
-
-      def minimum_length
-        @options[:min_length] || @options[:length] || 1
       end
 
       def run(app)

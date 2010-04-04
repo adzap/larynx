@@ -69,9 +69,14 @@ module Larynx
       @options[command_name.to_sym]
     end
 
+    def valid_length?
+      length = input.size
+      length >= minimum_length && length <= (maximum_length || length)
+    end
+
     def finalise
       call.remove_observer self
-      @block.call(input)
+      @block.arity == 2 ? @block.call(input, valid_length?) : @block.call(input)
       call.clear_input
     end
 
@@ -85,14 +90,14 @@ module Larynx
     end
 
     def add_digit_timer
-      call.add_timer(:digit, @options[:interdigit_timeout]) {
+      call.add_timer(:digit, interdigit_timeout) {
         call.cancel_timer :input
         finalise
       }
     end
 
     def add_input_timer
-      call.add_timer(:input, @options[:timeout]) {
+      call.add_timer(:input, timeout) {
         call.cancel_timer :digit
         finalise
       }

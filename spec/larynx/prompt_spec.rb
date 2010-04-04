@@ -159,6 +159,14 @@ describe Larynx::Prompt do
       after_callback prompt
       @callback.should == '1'
     end
+
+    it "should be passed input and result arguments if block arity is 2" do
+      prompt = new_prompt(:speak => '', :length => 1) {|input, result| @input = input; @result = result }
+      call.input << '1'
+      after_callback prompt
+      @input.should == '1'
+      @result.should be_true
+    end
   end
 
   context "interdigit timeout" do

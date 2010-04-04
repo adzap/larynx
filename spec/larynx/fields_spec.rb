@@ -103,17 +103,6 @@ describe Larynx::Fields do
       fld.current_prompt.message.should == 'second'
     end
 
-    context 'valid_length?' do
-      it 'should be false if input size less than minimum' do
-        fld = field(:guess) do
-          prompt :speak => 'first'
-        end
-        fld.run app
-        fld.current_prompt.finalise
-        fld.valid_length?.should be_false
-      end
-    end
-
     context 'input evaluation' do
       it 'should run validate callback if input minimum length' do
         call_me = should_be_called
