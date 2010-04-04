@@ -26,6 +26,14 @@ module Larynx
     def interrupted?
       @interrupted
     end
+
+    def setup
+      fire_callback :before
+    end
+
+    def finalize
+      fire_callback :after
+    end
   end
 
   class CallCommand < Command

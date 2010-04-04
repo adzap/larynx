@@ -114,13 +114,13 @@ module Larynx
         send_next_command
       when @response.executing?
         log "Executing: #{current_command.name}"
-        run_command_setup
+        current_command.setup
         @state = :executing
       when @response.executed?
         this_command = current_command
         finalize_command
         unless this_command.interrupted?
-          current_command.fire_callback(:after) if this_command.command == 'break'
+          current_command.finalize if this_command.command == 'break'
           @state = :ready
           send_next_command
         end
@@ -151,13 +151,9 @@ module Larynx
       end
     end
 
-    def run_command_setup
-      current_command.fire_callback :before
-    end
-
     def finalize_command
       if command = @queue.shift
-        command.fire_callback(:after) unless command.interrupted?
+        command.finalize unless command.interrupted?
         @last_command = command
       end
     end
