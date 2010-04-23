@@ -162,10 +162,8 @@ module Larynx
           evaluate_validity(result)
         when :invalid
           invalid_input
-        when :success
-          send_next_command
-        when :failure
-          send_next_command
+        when :success, :failure
+          finalize
         end
       end
 
@@ -202,12 +200,16 @@ module Larynx
       def run(app)
         @app = app
         @attempt = 1
+        call.add_observer self
         fire_callback(:setup)
         execute_prompt
       end
 
       def call
         @app.call
+      def finalize
+        call.remove_observer self
+        send_next_command
       end
 
     end
