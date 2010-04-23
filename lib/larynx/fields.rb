@@ -31,7 +31,7 @@ module Larynx
       end
 
       def next_field(field_name=nil)
-        @current_field = index_of_field(field_name) if field_name
+        @current_field = field_index(field_name) if field_name
         if field = @fields[@current_field]
           field.run(self)
           @current_field += 1
@@ -39,7 +39,7 @@ module Larynx
         end
       end
 
-      def index_of_field(name)
+      def field_index(name)
         field = @fields.find {|f| f.name == name }
         @fields.index(field)
       end
