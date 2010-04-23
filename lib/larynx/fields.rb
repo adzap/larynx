@@ -135,7 +135,7 @@ module Larynx
 
       def current_prompt
         options = (@prompt_queue[@attempt-1] || @prompt_queue.last).dup
-        method  = ([:play, :speak, :phrase] & options.keys).first
+        method  = command_from_options(options)
         message = options[method].is_a?(Symbol) ? @app.send(options[method]) : options[method]
         options[method] = message
 
@@ -193,6 +193,10 @@ module Larynx
       def set_instance_variables(input, result)
         @value, @valid_length = input, result
         @app.send("#{@name}=", input)
+      end
+
+      def command_from_options(options)
+        ([:play, :speak, :phrase] & options.keys).first
       end
 
       def run(app)
