@@ -10,6 +10,10 @@ module Larynx
       end
     end
 
+    def answered?
+      executed? && command_name == 'answer' #event_name == 'CHANNEL_ANSWER'
+    end
+
     def reply?
       @header[:content_type] == 'command/reply'
     end

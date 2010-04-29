@@ -111,6 +111,9 @@ module Larynx
       !@em_signature.nil?
     end
   end
+
+  # Default connect callback is to answer call
+  connect {|call| call.answer }
 end
 
 Larynx.run unless defined?(TEST)

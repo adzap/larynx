@@ -64,9 +64,8 @@ describe Larynx::CallHandler do
     end
 
     it "should run app command before callback" do
-      call.speak('hello world').before { @callback = true }
+      call.speak('hello world').before &should_be_called
       call.send_response :execute
-      @callback.should be_true
     end
 
     it "should change state to executing" do
@@ -132,9 +131,19 @@ describe Larynx::CallHandler do
     end
 
     it "should fire global connect callback" do
-      Larynx.connect {|call| @callback = true }
+      with_global_callback(:connect, should_be_called) do
+        connect_call
+      end
+    end
+
+    it "should subscribe to myevents" do
+      call.should_receive(:myevents)
       connect_call
-      @callback.should be_true
+    end
+
+    it "should set event lingering on after filter events" do
+      call.should_receive(:linger)
+      connect_call
     end
 
     it "should start the call session" do
@@ -146,39 +155,36 @@ describe Larynx::CallHandler do
       call.send_response :channel_data
     end
 
-    after do
-      Larynx.connect {|call|}
-    end
   end
 
-  context "on session start" do
+  context "#session_start" do
     before do
       call.queue = []
       call.session = mock('session', :unique_id => '123')
+      call.response = mock('response', :header => {})
     end
 
-    it "should subscribe to myevents" do
+    it "should subscribe to events" do
       call.should_receive(:myevents)
       call.start_session
     end
 
-    it "should set event lingering on after filter events" do
+    it "should execute linger command" do
       call.should_receive(:linger)
       call.start_session
-      call.send_response :reply_ok
     end
 
-    it "should answer call after filter events" do
+    it "should run answer command in connect callback be default" do
       call.should_receive(:answer)
       call.start_session
-      call.send_response :reply_ok
     end
   end
 
   context "on answer" do
     before do
-      call.queue = []
-      call.session = mock('session', :unique_id => '123')
+      call.queue    = []
+      call.session  = mock('session', :unique_id => '123')
+      call.response = mock('response', :header => {})
     end
 
     it "should change state to ready" do
@@ -187,17 +193,13 @@ describe Larynx::CallHandler do
     end
 
     it "should fire global answer callback" do
-      Larynx.answer {|call| @callback = true }
-      answer_call
-      @callback.should be_true
+      with_global_callback(:answer, should_be_called) do
+        answer_call
+      end
     end
 
     def answer_call
-      call.start_session
-      call.send_response :reply_ok
-      call.send_response :reply_ok
-      call.send_response :reply_ok
-      call.send_response :execute_complete
+      call.send_response :answered
     end
   end
 
@@ -303,20 +305,18 @@ describe Larynx::CallHandler do
   context "stop_timer" do
     it "should run callback on timeout" do
       em do
-        call.add_timer(:test, 1) { @callback = true }
+        call.add_timer(:test, 1, &should_be_called)
         EM::Timer.new(0.1) { call.stop_timer :test; done }
       end
-      @callback.should be_true
     end
   end
 
   context "cancel_timer" do
     it "should not run callback" do
       em do
-        call.add_timer(:test, 0.2) { @callback = true }
+        call.add_timer(:test, 0.2, &should_not_be_called)
         EM::Timer.new(0.1) { call.cancel_timer :test; done }
       end
-      @callback.should_not be_true
     end
   end
 

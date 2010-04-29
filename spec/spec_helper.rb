@@ -11,8 +11,14 @@ LARYNX_LOGGER = Logger.new(STDOUT)
 RESPONSES = {}
 Dir['spec/fixtures/*.rb'].each {|file| require file }
 
+Larynx.module_eval do
+  def self.callbacks
+    @callbacks
+  end
+end
+
 class TestCallHandler < Larynx::CallHandler
-  attr_accessor :sent_data, :session, :state, :queue, :input, :timers
+  attr_accessor :sent_data, :session, :response, :state, :queue, :input, :timers
 
   def send_data(msg)
     @sent_data = msg
@@ -39,6 +45,13 @@ module SpecHelper
     proc = mock('Proc should not be called')
     proc.should_not_receive(:call).instance_eval(&(block || lambda {}))
     lambda { |*args| proc.call(*args) }
+  end
+
+  def with_global_callback(name, test_callback)
+    default = Larynx.callbacks[name]
+    Larynx.send(name, &test_callback)
+    yield
+    Larynx.send(name, &default)
   end
 
   def reset_class(klass, &block)

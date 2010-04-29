@@ -8,23 +8,16 @@ module Larynx
     # EM hook which is run when call is received
     def post_init
       @queue, @input, @timers = [], [], {}
-      connect {
-        @session = Session.new(@response.header)
-        log "Call received from #{caller_id}"
-        Larynx.fire_callback(:connect, self)
-        start_session
-      }
+      connect { start_session }
       send_next_command
     end
 
     def start_session
-      myevents {
-				linger
-				answer {
-					log 'Answered call'
-					Larynx.fire_callback(:answer, self)
-				}
-      }
+      @session = Session.new(@response.header)
+      log "Call received from #{caller_id}"
+      myevents
+      linger
+      Larynx.fire_callback(:connect, self)
     end
 
     def called_number
@@ -97,26 +90,29 @@ module Larynx
       end
     end
 
-    def cleanup
-      break! if @state == :executing
-      cancel_all_timers
-      clear_observers!
-    end
-
     def receive_request(header, content)
       @response = Response.new(header, content)
+      handle_request
+    end
 
+    def handle_request
       case
-      when @response.reply? && !current_command.is_a?(AppCommand)
+      when @response.reply? && current_command.is_a?(CallCommand)
         log "Completed: #{current_command.name}"
         finalize_command
         @state = :ready
+        send_next_command
+      when @response.answered?
+        log 'Answered call'
+        finalize_command
+        @state = :ready
+        Larynx.fire_callback(:answer, self)
         send_next_command
       when @response.executing?
         log "Executing: #{current_command.name}"
         current_command.setup
         @state = :executing
-      when @response.executed?
+      when @response.executed? && current_command
         this_command = current_command
         finalize_command
         unless this_command.interrupted?
@@ -127,7 +123,6 @@ module Larynx
       when @response.dtmf?
         log "Button pressed: #{@response.body[:dtmf_digit]}"
         handle_dtmf
-      when @response.speech?
       when @response.disconnect?
         log "Disconnected."
         cleanup
@@ -167,6 +162,12 @@ module Larynx
         @state = :sending
         send_data command.to_s
       end
+    end
+
+    def cleanup
+      break! if @state == :executing
+      cancel_all_timers
+      clear_observers!
     end
 
     def log(msg)
