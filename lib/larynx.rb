@@ -30,13 +30,13 @@ module Larynx
       @options = {
         :ip       => "0.0.0.0",
         :port     => 8084,
-        :pid_file => './larynx.pid',
-        :log_file => './larynx.log'
+        :pid_file => "./larynx.pid",
+        :log_file => "./larynx.log"
       }
       opts = OptionParser.new
       opts.banner = "Usage: larynx [options]"
       opts.separator ''
-      opts.separator "Larynx is a tool to develop FreeSWITCH IVR applications in Ruby."
+      opts.separator "Larynx is a framework to develop FreeSWITCH IVR applications in Ruby."
       opts.on('-i', '--ip IP',         'Listen for connections on this IP') {|ip| @options[:ip] = ip }
       opts.on('-p', '--port PORT',     'Listen on this port', Integer)      {|port| @options[:port] = port }
       opts.on('-d', '--daemonize',     'Run as daemon')                     { @options[:daemonize] = true }
@@ -54,7 +54,10 @@ module Larynx
     end
 
     def graceful_exit
-      LARYNX_LOGGER.info "Shutting down Larynx"
+      msg = "Shutting down Larynx"
+      $stderr.puts msg unless @options[:daemon]
+      LARYNX_LOGGER.info msg
+
       EM.stop_server @em_signature
       @em_signature = nil
       remove_pid_file if @options[:daemonize]
@@ -86,7 +89,10 @@ module Larynx
     end
 
     def start_server
-      LARYNX_LOGGER.info "Larynx starting up on #{@options[:ip]}:#{@options[:port]}"
+      msg = "Larynx starting up on #{@options[:ip]}:#{@options[:port]}"
+      $stderr.puts msg unless @options[:daemon]
+      LARYNX_LOGGER.info msg
+
       EM::run {
         @em_signature = EM::start_server @options[:ip], @options[:port], Larynx::CallHandler
       }
