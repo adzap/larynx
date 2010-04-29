@@ -127,7 +127,7 @@ module Larynx
       end
 
       def add_prompt(options)
-        options.assert_valid_keys(:play, :speak, :phrase, :bargein, :repeats)
+        options.assert_valid_keys(:play, :speak, :phrase, :bargein, :repeats, :interdigit_timeout, :timeout)
         repeats = options.delete(:repeats) || 1
         options.merge!(@options.slice(:length, :min_length, :max_length, :interdigit_timeout, :timeout))
         @prompt_queue += ([options] * repeats)
