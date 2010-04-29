@@ -7,7 +7,7 @@ module Larynx
       base.extend ClassMethods
       base.class_eval do
         include InstanceMethods
-        cattr_accessor :field_definitions
+        class_inheritable_accessor :field_definitions
         self.field_definitions = []
         attr_accessor :fields
       end
