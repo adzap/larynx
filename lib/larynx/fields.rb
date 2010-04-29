@@ -151,6 +151,8 @@ module Larynx
 
       def call
         @app.call
+      end
+
       def finalize
         call.remove_observer self
         send_next_command
