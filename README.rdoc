@@ -201,8 +201,8 @@ These are:
 6. Handle the next action if the caller fails enter valid input after a number of attempts.
 
 You define these tasks as callbacks for each type of action, be it setup, validate, invalid, success or failure.
-These callbacks are run in the scope of the form class instance each time so that they can access or
-user defined methods or instance variables you need.
+These callbacks are run in the scope of the form class instance each time so that they can access user
+defined methods or instance variables you need.
 
 Each field defined becomes an attribute on the form class instance which you can use at any time. The value
 is set to the caller input after each prompt, just use the field attribute method to retrieve it. A form may
