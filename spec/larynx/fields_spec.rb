@@ -1,5 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
+class TestApp < Larynx::Application; end
+
 describe Larynx::Fields do
   attr_reader :call, :app
 
@@ -213,7 +215,7 @@ describe Larynx::Fields do
   end
 
   def define_app(&block)
-    Class.new(Larynx::Application) do
+    reset_class(TestApp) do
       include Larynx::Fields
       instance_eval &block if block_given?
     end
