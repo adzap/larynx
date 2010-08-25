@@ -216,23 +216,23 @@ Lets look at a simple Form class with empty callbacks in place.
       prompt :speak => 'Please enter a value.'
 
       setup do
-        # run once when the field is starts
+        # Run once when the field is starts.
       end
 
       validate do
-        # run when the input is of a valid length
+        # Run when the input is of a valid length. Return true if valid.
       end
 
       invalid do
-        # run when the input is not a valid length or the validate block returns false
+        # Run when the input is not a valid length or the validate block returns false.
       end
 
       success do
-        # run when the input is a valid length the validate block, if defined, returns true
+        # Run when the input is a valid length and the validate block, if defined, returns true.
       end
 
       failure do
-        # run when the maximum attempts has been reached and valid input has not been entered
+        # Run when the maximum attempts has been reached and valid input has not been entered.
       end
     end
   end
