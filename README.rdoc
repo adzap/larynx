@@ -212,6 +212,10 @@ together and define another form for unrelated fields.
 Lets look at a simple Form class with empty callbacks in place.
 
   class MyApp < Larynx::Form
+    setup do
+      # Run when the form is first run or restarted.
+    end
+
     field(:my_field, :attempts => 3, :length => 1) do
       prompt :speak => 'Please enter a value.'
 

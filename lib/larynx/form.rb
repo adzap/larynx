@@ -1,14 +1,14 @@
 module Larynx
   class Form < Application
     include Fields
-    @@setup = nil
+    class_inheritable_accessor :setup_block
 
     def self.setup(&block)
-      @@setup = block
+      self.setup_block = block
     end
 
     def run
-      instance_eval &@@setup if @@setup
+      instance_eval &self.class.setup_block if self.class.setup_block
       next_field
     end
 
