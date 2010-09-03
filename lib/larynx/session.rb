@@ -12,6 +12,10 @@ module Larynx
       end
     end
 
+    def []=(key, value)
+      @variables[key] = value
+    end
+
     def [](key)
       @variables[key]
     end
