@@ -13,6 +13,8 @@ module Larynx
   class Prompt
     attr_reader :call
 
+    COMMAND_OPTIONS = [:play, :speak, :phrase]
+
     def initialize(call, options, &block)
       @call, @options, @block = call, options, block
       @options.reverse_merge!(:bargein => true, :timeout => 10, :interdigit_timeout => 3, :termchar => '#')
@@ -63,7 +65,7 @@ module Larynx
     end
 
     def command_name
-      ([:play, :speak, :phrase] & @options.keys).first.to_s
+      (COMMAND_OPTIONS & @options.keys).first.to_s
     end
 
     def message
