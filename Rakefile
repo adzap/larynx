@@ -23,7 +23,6 @@ spec = Gem::Specification.new do |s|
   s.homepage = "http://github.com/adzap/larynx"
 
   s.require_path = 'lib'
-  s.autorequire = GEM_NAME
   s.files = %w(MIT-LICENSE README.rdoc Rakefile) + Dir.glob("{lib,spec,examples}/**/*")
   s.add_dependency "eventmachine",   "~> 0.12.10"
   s.add_dependency "activesupport", "~> 2.3.5"
