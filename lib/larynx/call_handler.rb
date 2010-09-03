@@ -168,6 +168,7 @@ module Larynx
       break! if @state == :executing
       cancel_all_timers
       clear_observers!
+      @session = nil
     end
 
     def log(msg)
