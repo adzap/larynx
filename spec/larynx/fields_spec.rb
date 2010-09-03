@@ -25,7 +25,7 @@ describe Larynx::Fields do
     end
   end
 
-  context 'next_field' do
+  context '#next_field' do
     before do
       @app = define_app do
         field(:field1) { prompt :speak => 'hello' }
@@ -42,6 +42,21 @@ describe Larynx::Fields do
 
     it 'should jump to field name if supplied' do
       app.next_field(:field2).name.should == :field2
+    end
+  end
+
+  context "#current_field" do
+    it 'should return field of current position' do
+      @app = define_app do
+        field(:field1) { prompt :speak => 'hello' }
+        field(:field2) { prompt :speak => 'hello' }
+      end.new(call)
+      app.run
+
+      app.next_field
+      app.current_field.should == app.fields[0]
+      app.next_field
+      app.current_field.should == app.fields[1]
     end
   end
 

@@ -13,7 +13,7 @@ module Larynx
     end
 
     def restart_form
-      @current_field = 0
+      @field_index = -1
       run
     end
   end

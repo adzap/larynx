@@ -26,17 +26,24 @@ module Larynx
 
       def initialize(*args, &block)
         @fields = self.class.field_definitions.map {|field| Field.new(field[:name], field[:options], &field[:block]) }
-        @current_field = 0
+        @field_index = -1
         super
       end
 
       def next_field(field_name=nil)
-        @current_field = field_index(field_name) if field_name
-        if field = @fields[@current_field]
+        if field_name
+          @field_index = field_index(field_name)
+        else
+          @field_index += 1
+        end
+        if field = current_field
           field.run(self)
-          @current_field += 1
           field
         end
+      end
+
+      def current_field
+        @fields[@field_index]
       end
 
       def field_index(name)
