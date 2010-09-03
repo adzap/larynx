@@ -99,10 +99,9 @@ module Larynx
       end
 
       # hook called when callback is complete
-      def callback_complete(callback, result)
+      def callback_complete(callback, result=true)
         case callback
         when :validate
-          result = result.nil? ? true : result
           evaluate_validity(result)
         when :invalid
           invalid_input

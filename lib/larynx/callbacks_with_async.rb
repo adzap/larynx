@@ -41,7 +41,7 @@ module Larynx
             callback_complete(callback, scope_callback(block, scope).call)
           end
         else
-          callback_complete(callback, nil)
+          callback_complete(callback)
         end
       end
 

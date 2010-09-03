@@ -139,6 +139,18 @@ describe Larynx::Fields do
         fld.current_prompt.finalise
       end
 
+      it 'should run invalid callback if validate callback returns nil' do
+        call_me = should_be_called
+        fld = field(:guess, :min_length => 1) do
+          prompt :speak => 'first'
+          validate { nil }
+          invalid &call_me
+        end
+        fld.run app
+        call.input << '1'
+        fld.current_prompt.finalise
+      end
+
       it 'should run success callback if length valid and no validate callback' do
         call_me = should_be_called
         fld = field(:guess, :min_length => 1) do
