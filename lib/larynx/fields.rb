@@ -51,12 +51,20 @@ module Larynx
         @fields.index(field)
       end
 
+      def attempt
+        current_field.attempt
+      end
+
+      def last_attempt?
+        current_field.last_attempt?
+      end
+
     end
 
     class Field
       include CallbacksWithAsync
 
-      attr_reader :name, :app
+      attr_reader :name, :app, :attempt
       define_callback :setup, :validate, :invalid, :success, :failure, :scope => :app
 
       def initialize(name, options, &block)
@@ -126,11 +134,11 @@ module Larynx
       end
 
       def invalid_input
-        if @attempt < @options[:attempts]
+        if last_attempt?
+          fire_callback(:failure)
+        else
           increment_attempts
           execute_prompt
-        else
-          fire_callback(:failure)
         end
       end
 
@@ -162,6 +170,10 @@ module Larynx
       def finalize
         call.remove_observer self
         send_next_command
+      end
+
+      def last_attempt?
+        @attempt == @options[:attempts]
       end
 
     end
