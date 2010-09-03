@@ -1,7 +1,9 @@
 module Larynx
   class Application
     attr_reader :call
+
     delegate *Commands.instance_methods << {:to => :call}
+    delegate :session, :to => :call
 
     def self.run(call)
       app = self.new(call)
