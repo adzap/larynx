@@ -144,7 +144,7 @@ module Larynx
       end
 
       def command_from_options(options)
-        ([:play, :speak, :phrase] & options.keys).first
+        (Prompt::COMMAND_OPTIONS & options.keys).first
       end
 
       def run(app)
