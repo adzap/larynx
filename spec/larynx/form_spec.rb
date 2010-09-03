@@ -29,8 +29,11 @@ describe Larynx::Form do
       field(:test1) { prompt :speak => '' }
       field(:test2) { prompt :speak => '' }
     end.new(call)
-    form.fields[0].should_receive(:run)
+
+    form.fields[0].should_receive(:run).twice
     form.run
+    form.next_field
+    form.restart_form
   end
 
   def define_form(&block)
