@@ -107,7 +107,7 @@ module Larynx
         finalize_command
         @state = :ready
         Larynx.fire_callback(:answer, self)
-        send_next_command
+        send_next_command if @state == :ready
       when @response.executing?
         log "Executing: #{current_command.name}"
         current_command.setup

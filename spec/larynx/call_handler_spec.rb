@@ -198,6 +198,18 @@ describe Larynx::CallHandler do
       end
     end
 
+    it "should send next command if state is ready" do
+      call.should_receive(:send_next_command)
+      answer_call
+    end
+
+    it "should not send next command if answer callback changed state" do
+      call.should_not_receive(:send_next_command)
+      with_global_callback(:answer, lambda { call.state = :sending }) do
+        answer_call
+      end
+    end
+
     def answer_call
       call.send_response :answered
     end
