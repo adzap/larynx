@@ -39,6 +39,27 @@ describe Larynx::Prompt do
       @prompt.input.should == '1'
     end
   end
+  context "command" do
+    it "should return command object for command name" do
+      cmd = new_prompt.command
+      cmd.should be_kind_of(Larynx::AppCommand)
+      cmd.command.should == 'speak'
+    end
+  end
+
+  context "before callback" do
+    it "should clear input on execution if no bargein allowed" do
+      call.input << '1'
+      before_callback new_prompt(:speak => 'hello', :bargein => false)
+      call.input.should be_empty
+    end
+
+    it "should clear input on execution if bargein allowed" do
+      call.input << '1'
+      before_callback new_prompt(:speak => 'hello', :bargein => true)
+      call.input.should_not be_empty
+    end
+  end
 
   context "prompt_finished?" do
     it "should return true if input length reached" do
@@ -66,23 +87,28 @@ describe Larynx::Prompt do
     end
   end
 
-  context "command" do
-    it "should return command object for command name" do
-      cmd = new_prompt.command
-      cmd.should be_kind_of(Larynx::AppCommand)
-      cmd.command.should == 'speak'
-    end
-  end
-
-  context "before callback" do
-    it "should clear input on execution" do
-      call.input << '1'
-      before_callback new_prompt
-      call.input.should be_empty
-    end
-  end
 
   context "after callback" do
+    context "bargein" do
+      it 'should clear input before prompt status evaluated if false' do
+        prompt = new_prompt(:speak => 'hello', :length => 1, :bargein => false)
+        call.input << '1'
+        em do
+          after_callback prompt
+          prompt.prompt_finished?.should be_false
+          done
+        end
+      end
+
+      it 'should not clear input before prompt status evaluated if true' do
+        prompt = new_prompt(:speak => 'hello', :length => 1, :bargein => true) { done }
+        call.input << '1'
+        em do
+          after_callback prompt
+        end
+      end
+    end
+
     context "input completed" do
       it "should not add timers if reached length" do
         prompt = new_prompt
@@ -146,9 +172,10 @@ describe Larynx::Prompt do
     end
 
     it "should clear input" do
+      call.input << '1'
       prompt = new_prompt
-      call.should_receive(:clear_input)
       prompt.finalise
+      call.input.should be_empty
     end
   end
 

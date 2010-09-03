@@ -21,8 +21,9 @@ module Larynx
 
     def command
       @command ||= AppCommand.new(command_name, message, :bargein => @options[:bargein]).
-        before { call.clear_input }.
+        before { call.clear_input unless @options[:bargein] }.
         after  {
+          call.clear_input unless @options[:bargein]
           if prompt_finished?
             finalise
           else
