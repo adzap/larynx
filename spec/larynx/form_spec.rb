@@ -9,31 +9,35 @@ describe Larynx::Form do
     @call = TestCallHandler.new(1)
   end
 
-  it 'should call setup block when form is run' do
-    this_should_be_called = should_be_called
-    define_form do
-      setup &this_should_be_called
-    end.run(call)
+  context "#run" do
+    it 'should call setup block' do
+      this_should_be_called = should_be_called
+      define_form do
+        setup &this_should_be_called
+      end.run(call)
+    end
   end
 
-  it 'should call setup block when form is restarted' do
-    this_should_be_called = should_be_called
-    form = define_form do
-      setup &this_should_be_called
-    end.new(call)
-    form.restart_form
-  end
+  context "#restart_form" do
+    it 'should call form setup block' do
+      this_should_be_called = should_be_called
+      form = define_form do
+        setup &this_should_be_called
+      end.new(call)
+      form.restart_form
+    end
 
-  it 'should run the first field when run' do
-    form = define_form do
-      field(:test1) { prompt :speak => '' }
-      field(:test2) { prompt :speak => '' }
-    end.new(call)
+    it 'should run the first field again' do
+      form = define_form do
+        field(:test1) { prompt :speak => '' }
+        field(:test2) { prompt :speak => '' }
+      end.new(call)
 
-    form.fields[0].should_receive(:run).twice
-    form.run
-    form.next_field
-    form.restart_form
+      form.fields[0].should_receive(:run).twice
+      form.run
+      form.next_field
+      form.restart_form
+    end
   end
 
   def define_form(&block)
