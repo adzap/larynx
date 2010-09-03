@@ -120,6 +120,27 @@ describe Larynx::Fields do
       fld.current_prompt.message.should == 'second'
     end
 
+    context "#last_attempt?" do
+      it 'should return false when current attempt not equal to max attempts' do
+        fld = field(:guess, :attempts => 2) do
+          prompt :speak => 'first'
+        end
+        fld.run(app)
+        fld.attempt.should == 1
+        fld.last_attempt?.should be_false
+      end
+
+      it 'should return true when current attempt equals max attempts' do
+        fld = field(:guess, :attempts => 2) do
+          prompt :speak => 'first'
+        end
+        fld.run(app)
+        fld.increment_attempts
+        fld.attempt.should == 2
+        fld.last_attempt?.should be_true
+      end
+    end
+
     context 'input evaluation' do
       it 'should run validate callback if input minimum length' do
         call_me = should_be_called
