@@ -3,11 +3,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 class TestForm < Larynx::Form; end
 
 describe Larynx::Form do
-  attr_reader :call
-
-  before do
-    @call = TestCallHandler.new(1)
-  end
+  let(:call) { TestCallHandler.new(1) }
 
   it 'should add field class method' do
     Larynx::Form.should respond_to(:field)

@@ -3,12 +3,8 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 class TestForm < Larynx::Form; end
 
 describe Larynx::Field do
-  attr_reader :call, :form
-
-  before do
-    @call = TestCallHandler.new(1)
-    @form  = define_form.new(@call)
-  end
+  let(:call) { TestCallHandler.new(1) }
+  let(:form) { define_form.new(call) }
 
   it 'should raise exception if field has no prompt' do
     lambda { field(:guess) {} }.should raise_exception(Larynx::NoPromptDefined)
@@ -206,7 +202,7 @@ describe Larynx::Field do
   end
 
   def field(name, options={}, &block)
-    @form.class.class_eval { attr_accessor name }
+    form.class.class_eval { attr_accessor name }
     Larynx::Field.new(name, options, &block)
   end
 
