@@ -15,6 +15,10 @@ module Larynx
 
     COMMAND_OPTIONS = [:play, :speak, :phrase]
 
+    def self.command_from_options(options)
+      (Prompt::COMMAND_OPTIONS & options.keys).first
+    end
+
     def initialize(call, options, &block)
       @call, @options, @block = call, options, block
       @options.reverse_merge!(:bargein => true, :timeout => 10, :interdigit_timeout => 3, :termchar => '#')
@@ -65,7 +69,7 @@ module Larynx
     end
 
     def command_name
-      (COMMAND_OPTIONS & @options.keys).first.to_s
+      self.class.command_from_options(@options).to_s
     end
 
     def message

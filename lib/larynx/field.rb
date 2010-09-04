@@ -6,8 +6,10 @@ module Larynx
 
     VALID_PROMPT_OPTIONS = [:play, :speak, :phrase, :bargein, :repeats, :interdigit_timeout, :timeout]
 
-    attr_reader :name, :app, :attempt
-    define_callback :setup, :validate, :invalid, :success, :failure, :scope => :app
+    attr_reader :name, :form, :attempt
+    define_callback :setup, :validate, :invalid, :success, :failure, :scope => :form
+
+    delegate :call, :to => :form
 
     def initialize(name, options, &block)
       @name = name
@@ -36,8 +38,8 @@ module Larynx
 
     def current_prompt
       options = (@prompt_queue[@attempt-1] || @prompt_queue.last).dup
-      method  = command_from_options(options)
-      message = options[method].is_a?(Symbol) ? @app.send(options[method]) : options[method]
+      method  = Prompt.command_from_options(options)
+      message = options[method].is_a?(Symbol) ? @form.send(options[method]) : options[method]
       options[method] = message
 
       Prompt.new(call, options) {|input, result|
@@ -90,23 +92,15 @@ module Larynx
 
     def set_instance_variables(input, result)
       @value, @valid_length = input, result
-      @app.send("#{@name}=", input)
+      @form.send("#{@name}=", input)
     end
 
-    def command_from_options(options)
-      (Prompt::COMMAND_OPTIONS & options.keys).first
-    end
-
-    def run(app)
-      @app = app
+    def run(form)
+      @form = form
       @attempt = 1
       call.add_observer self
       fire_callback(:setup)
       execute_prompt
-    end
-
-    def call
-      @app.call
     end
 
     def finalize
