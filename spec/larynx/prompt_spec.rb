@@ -1,11 +1,10 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Larynx::Prompt do
-  attr_accessor :call
+  let(:call) { TestCallHandler.new(1) }
 
   before do
-    @call = TestCallHandler.new(1)
-    @call.queue = []
+    call.queue = []
   end
 
   it "should raise error if no command value supplied" do
@@ -25,18 +24,16 @@ describe Larynx::Prompt do
   end
 
   context "input" do
-    before do
-      @prompt = new_prompt
-    end
+    let(:prompt) { new_prompt }
 
     it "should return call input as string" do
       call.input << '1'
-      @prompt.input.should == '1'
+      prompt.input.should == '1'
     end
 
     it "should return call input without termchar" do
       call.input += ['1', '#']
-      @prompt.input.should == '1'
+      prompt.input.should == '1'
     end
   end
   context "command" do
