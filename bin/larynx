@@ -5,3 +5,4 @@ unless defined?(Gem)
 end
 
 require 'larynx'
+Larynx::Server.boot
