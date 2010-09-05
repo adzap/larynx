@@ -186,8 +186,8 @@ The Application and Form classes have a couple of useful event hook methods avai
 
 == Form Class
 
-The Form class is a sublcass of the Application class with some added goodness. You can use the field
-DSL to abstract away a lot of the reptitive work and more difficult asynchronous stuff you would have
+The Form class is a subclass of the Application class with some added goodness. You can use the field
+DSL to abstract away a lot of the repetitive work and more difficult asynchronous stuff you would have
 to handle yourself.
 
 When collection input from the caller you are usually needing to do one or more of a few things.
@@ -242,8 +242,30 @@ Lets look at a simple Form class with empty callbacks in place.
   end
 
 This form will do the following when run:
-* Define a field attribute method called <tt>my_field</tt>
-* Atempt to obtain the field value up to 3 times if the caller fails to successfully enter it
-* Accept a single digit value as complete and valid intput
+* Define a field attribute method called <tt>my_field</tt>.
+* Attempt to obtain the field value up to 3 times.
+* Accept a single digit value as complete and valid input.
 
+The form instance has some helper methods for moving around the form or checking on state.
+
+* next_field :field_name (optional) - Moves to the next field in the queue or the named field if specified.
+* restart_form  - Start the form over again including the setup callback.
+* current_field - Current field being run.
+* attempt       - The attempt counter for the current field
+* last_attempt? - Checks if this is the last attempt for the current field.
+* session       - Access or store data in the call session.
+
+
+== Menu Class
+
+The menu class is to simplify giving a list of options to the caller and waiting for their choice. The choice can
+be matched to a single number, a number range, or an array.
+
+  class MyMenu < Larynx::Menu
+    prompt :speak => 'For kicks, press 1. For laughs, press 2. To exist, press 3.', :attempts => 3
+
+    option(1) { Kicks.run(call) }
+    option(2) { Laughs.run(call) }
+    option(3) { hangup }
+  end
 
