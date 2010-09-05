@@ -16,10 +16,12 @@ require 'larynx/prompt'
 require 'larynx/application'
 require 'larynx/field'
 require 'larynx/form'
+require 'larynx/menu'
 require 'larynx/restartable_timer'
 require 'larynx/call_handler'
 
 module Larynx
+
   class << self
     include Callbacks
     define_callback :connect, :answer, :hungup
