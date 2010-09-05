@@ -22,6 +22,15 @@ describe Larynx::Form do
         setup &this_should_be_called
       end.run(call)
     end
+
+    it 'should clear input before setup is run' do
+      call.input << '1'
+      define_form do
+        setup do
+          call.input.empty?.should == true
+        end
+      end.run(call)
+    end
   end
 
   context "#restart_form" do

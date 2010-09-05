@@ -1,7 +1,6 @@
 module Larynx
   class Form < Application
     class_inheritable_accessor :setup_block
-
     class_inheritable_accessor :field_definitions
     self.field_definitions = []
 
@@ -18,13 +17,14 @@ module Larynx
       end
     end
 
-    def initialize(*args, &block)
+    def initialize(call)
+      super
       @fields = self.class.field_definitions.map {|field| Field.new(field[:name], field[:options], &field[:block]) }
       @field_index = -1
-      super
     end
 
     def run
+      call.clear_input
       instance_eval &self.class.setup_block if self.class.setup_block
       next_field
     end
