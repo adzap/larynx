@@ -6,6 +6,10 @@ describe Larynx::Field do
   let(:call) { TestCallHandler.new(1) }
   let(:form) { define_form.new(call) }
 
+  before do
+    call.queue = []
+  end
+
   it 'should raise exception if field has no prompt' do
     lambda { field(:guess) {} }.should raise_exception(Larynx::NoPromptDefined)
   end
@@ -87,6 +91,17 @@ describe Larynx::Field do
   end
 
   context 'input evaluation' do
+    it 'should evaluate callbacks in form object scope' do
+      fld = field(:guess, :length => 1) do
+        prompt :speak => 'first'
+        validate { a_form_method }
+      end
+      form.should_receive(:a_form_method).and_return(true)
+      fld.run(form)
+      call.input << '1'
+      fld.current_prompt.finalise
+    end
+
     it 'should run validate callback if input minimum length' do
       call_me = should_be_called
       fld = field(:guess, :min_length => 1) do
