@@ -20,6 +20,14 @@ module Larynx
       raise(Larynx::NoPromptDefined, 'A field requires a prompt to be defined') if @prompt_queue.empty?
     end
 
+    def run(form)
+      @form = form
+      @attempt = 1
+      call.add_observer self
+      fire_callback(:setup)
+      execute_next_prompt
+    end
+
     def prompt(options)
       add_prompt(options)
     end
@@ -29,6 +37,26 @@ module Larynx
       add_prompt(options)
     end
 
+    def last_attempt?
+      @attempt == @options[:attempts]
+    end
+
+    def current_prompt
+      @current_prompt ||= prompt_for_attempt
+    end
+
+    private
+
+    def increment_attempts
+      @attempt += 1
+    end
+
+    def execute_next_prompt
+      @current_prompt = nil
+      call.execute current_prompt.command
+      send_next_command
+    end
+
     def add_prompt(options)
       options.assert_valid_keys(*VALID_PROMPT_OPTIONS)
       repeats = options.delete(:repeats) || 1
@@ -36,7 +64,7 @@ module Larynx
       @prompt_queue += ([options] * repeats)
     end
 
-    def current_prompt
+    def prompt_for_attempt
       options = (@prompt_queue[@attempt-1] || @prompt_queue.last).dup
       method  = Prompt.command_from_options(options)
       message = options[method].is_a?(Symbol) ? @form.send(options[method]) : options[method]
@@ -46,15 +74,6 @@ module Larynx
         set_instance_variables(input, result)
         evaluate_input
       }
-    end
-
-    def execute_prompt
-      call.execute current_prompt.command
-      send_next_command
-    end
-
-    def increment_attempts
-      @attempt += 1
     end
 
     # hook called when callback is complete
@@ -82,7 +101,7 @@ module Larynx
         fire_callback(:failure)
       else
         increment_attempts
-        execute_prompt
+        execute_next_prompt
       end
     end
 
@@ -92,24 +111,12 @@ module Larynx
 
     def set_instance_variables(input, result)
       @value, @valid_length = input, result
-      @form.send("#{@name}=", input)
-    end
-
-    def run(form)
-      @form = form
-      @attempt = 1
-      call.add_observer self
-      fire_callback(:setup)
-      execute_prompt
+      @form.instance_variable_set(:"@#{@name}", input)
     end
 
     def finalize
       call.remove_observer self
       send_next_command
-    end
-
-    def last_attempt?
-      @attempt == @options[:attempts]
     end
 
   end

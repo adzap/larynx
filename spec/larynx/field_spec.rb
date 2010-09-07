@@ -41,7 +41,7 @@ describe Larynx::Field do
     end
     fld.run(form)
     fld.current_prompt.message.should == 'first'
-    fld.increment_attempts
+    next_attempt fld
     fld.current_prompt.message.should == 'first'
   end
 
@@ -52,7 +52,7 @@ describe Larynx::Field do
     end
     fld.run(form)
     fld.current_prompt.message.should == 'first'
-    fld.increment_attempts
+    next_attempt fld
     fld.current_prompt.message.should == 'second'
   end
 
@@ -63,9 +63,9 @@ describe Larynx::Field do
     end
     fld.run(form)
     fld.current_prompt.message.should == 'first'
-    fld.increment_attempts
+    next_attempt fld
     fld.current_prompt.message.should == 'first'
-    fld.increment_attempts
+    next_attempt fld
     fld.current_prompt.message.should == 'second'
   end
 
@@ -84,7 +84,7 @@ describe Larynx::Field do
         prompt :speak => 'first'
       end
       fld.run(form)
-      fld.increment_attempts
+      next_attempt fld
       fld.attempt.should == 2
       fld.last_attempt?.should be_true
     end
@@ -196,7 +196,7 @@ describe Larynx::Field do
         reprompt :speak => 'second'
       end
       fld.run form
-      fld.should_receive(:execute_prompt)
+      fld.should_receive(:execute_next_prompt)
       fld.current_prompt.finalise
     end
 
@@ -214,6 +214,11 @@ describe Larynx::Field do
       # end
     end
 
+  end
+
+  def next_attempt(field)
+    field.send :increment_attempts
+    field.send :execute_next_prompt
   end
 
   def field(name, options={}, &block)
