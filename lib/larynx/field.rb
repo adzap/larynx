@@ -6,7 +6,7 @@ module Larynx
 
     VALID_PROMPT_OPTIONS = [:play, :speak, :phrase, :bargein, :repeats, :interdigit_timeout, :timeout]
 
-    attr_reader :name, :form, :attempt
+    attr_reader :name, :form, :attempt, :value
     define_callback :setup, :validate, :invalid, :success, :failure, :scope => :form
 
     delegate :call, :to => :form
