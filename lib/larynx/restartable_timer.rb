@@ -5,6 +5,7 @@ module Larynx
     def initialize(interval, callback=nil, &block)
       @interval = interval
       @code = callback || block
+      @work = method(:fire)
       schedule
     end
 
@@ -15,7 +16,7 @@ module Larynx
     end
 
     def schedule
-      @signature = EM::add_timer(@interval, method(:fire))
+      @signature = EM::add_timer(@interval, @work)
     end
 
     def fire
