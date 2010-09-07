@@ -24,8 +24,9 @@ spec = Gem::Specification.new do |s|
 
   s.require_path = 'lib'
   s.files = %w(MIT-LICENSE README.rdoc Rakefile) + Dir.glob("{lib,spec,examples}/**/*")
-  s.add_dependency "eventmachine",   "~> 0.12.10"
-  s.add_dependency "activesupport", "~> 2.3.5"
+  s.add_dependency "activesupport", ">= 2.3.5"
+  s.add_dependency "eventmachine",  "~> 0.12.10"
+  s.add_dependency "daemons",       "~> 1.1.0"
   s.add_development_dependency "rspec",   "~> 1.3.0"
   s.add_development_dependency "em-spec", "~> 0.1.3"
 end

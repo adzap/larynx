@@ -1,3 +1,5 @@
+require 'logger'
+
 module Larynx
   class Logger < ::Logger
     def format_message(severity, timestamp, progname, msg)
