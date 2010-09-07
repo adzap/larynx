@@ -50,17 +50,13 @@ module Larynx
       @fields[@field_index]
     end
 
+    def field_by_name(name)
+      @fields.find {|f| f.name == name }
+    end
+
     def field_index(name)
-      field = @fields.find {|f| f.name == name }
-      @fields.index(field)
-    end
-
-    def attempt
-      current_field.attempt
-    end
-
-    def last_attempt?
-      current_field.last_attempt?
+      field = field_by_name(name)
+      @fields.index(field) if field
     end
   end
 end
