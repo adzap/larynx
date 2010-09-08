@@ -4,7 +4,7 @@ module Larynx
   class Field
     include CallbacksWithAsync
 
-    VALID_PROMPT_OPTIONS = [:play, :speak, :phrase, :bargein, :repeats, :interdigit_timeout, :timeout]
+    VALID_PROMPT_OPTIONS = Prompt::PROMPT_OPTIONS + [:repeats]
 
     attr_reader :name, :form, :attempt, :value
     define_callback :setup, :validate, :invalid, :success, :failure, :scope => :form
@@ -60,7 +60,7 @@ module Larynx
     def add_prompt(options)
       options.assert_valid_keys(*VALID_PROMPT_OPTIONS)
       repeats = options.delete(:repeats) || 1
-      options.merge!(@options.slice(:length, :min_length, :max_length, :interdigit_timeout, :timeout))
+      options.merge!(@options.slice(*Prompt::PROMPT_OPTIONS))
       @prompt_queue += ([options] * repeats)
     end
 

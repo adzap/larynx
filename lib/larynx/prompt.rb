@@ -13,16 +13,18 @@ module Larynx
   class Prompt
     attr_reader :call
 
-    COMMAND_OPTIONS = [:play, :speak, :phrase]
+    COMMAND_OPTIONS = [:play, :playback, :speak, :phrase]
+    PROMPT_OPTIONS  = COMMAND_OPTIONS + [:length, :min_length, :max_length, :bargein, :interdigit_timeout, :timeout, :termchar]
 
     def self.command_from_options(options)
-      (Prompt::COMMAND_OPTIONS & options.keys).first
+      (COMMAND_OPTIONS & options.keys).first
     end
 
     def initialize(call, options, &block)
+      options.assert_valid_keys(*PROMPT_OPTIONS)
       @call, @options, @block = call, options, block
       @options.reverse_merge!(:bargein => true, :timeout => 10, :interdigit_timeout => 3, :termchar => '#')
-      raise NoPromptCommandValue, "No output command value supplied. Use one of playback, speak or phrase keys." if command_name.blank?
+      raise NoPromptCommandValue, "No output command value supplied. Use one of play, speak or phrase keys." if command_name.blank?
     end
 
     def command

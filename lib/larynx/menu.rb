@@ -43,7 +43,7 @@ module Larynx
       command_value = prompt_options[command]
       prompt_options[command] = command_value.is_a?(Symbol) ? send(command_value) : command_value 
 
-      Prompt.new(call, prompt_options) {|input, result|
+      Prompt.new(call, prompt_options.slice(*Prompt::PROMPT_OPTIONS)) {|input, result|
         evaluate_choice(input)
       }
     end
