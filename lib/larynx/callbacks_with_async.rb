@@ -1,6 +1,6 @@
 module Larynx
   # Allows you to set the :async flag on the back to the callback in with
-  # EM.defer method. Its useful for long running tasks like database calls.
+  # EM.defer method. Its useful for blocking or long running tasks like database calls.
   module CallbacksWithAsync
     def self.included(base)
       base.extend ClassMethods
