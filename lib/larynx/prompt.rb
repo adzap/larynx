@@ -23,7 +23,7 @@ module Larynx
     def initialize(call, options, &block)
       options.assert_valid_keys(*PROMPT_OPTIONS)
       @call, @options, @block = call, options, block
-      @options.reverse_merge!(:bargein => true, :timeout => 10, :interdigit_timeout => 3, :termchar => '#')
+      @options.reverse_merge!(Larynx.prompt_defaults)
       raise NoPromptCommandValue, "No output command value supplied. Use one of play, speak or phrase keys." if command_name.blank?
     end
 

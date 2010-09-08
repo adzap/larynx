@@ -13,7 +13,7 @@ module Larynx
 
     def initialize(name, options, &block)
       @name = name
-      @options = options.reverse_merge(:attempts => 3)
+      @options = options.reverse_merge(Larynx.field_defaults)
       @prompt_queue = []
 
       instance_eval(&block)

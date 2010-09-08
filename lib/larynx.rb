@@ -23,6 +23,18 @@ require 'larynx/restartable_timer'
 require 'larynx/call_handler'
 
 module Larynx
+  mattr_accessor :prompt_defaults
+  @@prompt_defaults = {
+    :bargein  => true,
+    :termchar => '#',
+    :timeout  => 10,
+    :interdigit_timeout => 3
+  }
+
+  mattr_accessor :field_defaults
+  @@field_defaults = {
+    :attempts => 3
+  }
 
   class << self
     include Callbacks
