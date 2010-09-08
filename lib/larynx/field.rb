@@ -22,7 +22,7 @@ module Larynx
 
     def run(form)
       @form = form
-      @attempt = 1
+      @attempt = 0
       call.add_observer self
       fire_callback(:setup)
       execute_next_prompt
@@ -53,6 +53,7 @@ module Larynx
 
     def execute_next_prompt
       @current_prompt = nil
+      increment_attempts
       call.execute current_prompt.command
       send_next_command
     end

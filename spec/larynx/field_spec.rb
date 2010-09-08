@@ -217,7 +217,6 @@ describe Larynx::Field do
   end
 
   def next_attempt(field)
-    field.send :increment_attempts
     field.send :execute_next_prompt
   end
 
