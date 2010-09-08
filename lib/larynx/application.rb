@@ -20,7 +20,7 @@ module Larynx
     end
 
     def log(msg)
-      app.call.log(msg)
+      @call.log(msg)
     end
   end
 end
