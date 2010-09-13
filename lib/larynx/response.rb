@@ -11,7 +11,7 @@ module Larynx
     end
 
     def answered?
-      executed? && command_name == 'answer' #event_name == 'CHANNEL_ANSWER'
+      executed? && command_name == 'answer'
     end
 
     def reply?
@@ -30,6 +30,10 @@ module Larynx
       @header[:reply_text] =~ /ERR/
     end
 
+    def disconnect?
+      @header[:content_type] == 'text/disconnect-notice'
+    end
+
     def executing?
       event_name == 'CHANNEL_EXECUTE'
     end
@@ -38,24 +42,20 @@ module Larynx
       event_name == 'CHANNEL_EXECUTE_COMPLETE'
     end
 
-    def command_name
-      @body[:application] if @body
+    def dtmf?
+      event_name == 'DTMF'
+    end
+
+    def speech?
+      event_name == 'DETECTED_SPEECH'
     end
 
     def event_name
       @body[:event_name] if @body
     end
 
-    def dtmf?
-      @body[:event_name] == 'DTMF' if @body
-    end
-
-    def speech?
-      @body[:event_name] == 'DETECTED_SPEECH' if @body
-    end
-
-    def disconnect?
-      @header[:content_type] == 'text/disconnect-notice'
+    def command_name
+      @body[:application] if @body
     end
   end
 end
