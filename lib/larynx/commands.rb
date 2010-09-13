@@ -60,8 +60,14 @@ module Larynx
     #   }
     #
     def read(options={}, &block)
-      options.reverse_merge!(:timeout => 5000, :var_name => 'read_result', :termchar => '#')
       options[:bargein] = false
+      options.reverse_merge!(
+        :minimum  => 1,
+        :maximum  => 2,
+        :timeout  => 5000,
+        :var_name => 'read_result',
+        :termchar => '#'
+      )
 
       if length = options.delete(:length)
         values = length.is_a?(Range) ? [length.first, length.last] : [length, length]
@@ -69,7 +75,7 @@ module Larynx
       end
 
       order = [:minimum, :maximum, :sound_file, :var_name, :timeout, :termchar]
-      data  = order.inject('') {|data, key| data += " #{options[key]}"; data }.strip
+      data  = order.map {|key| options[key].to_s }.join(' ')
 
       execute AppCommand.new('read', data, options).after {
         block.call(response.body[:variable_read_result])
