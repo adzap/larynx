@@ -81,7 +81,11 @@ module Larynx
     end
 
     def break!
-      execute AppCommand.new('break'), true
+      command_interrupted = current_command
+      command_interrupted.interrupt!
+      command = AppCommand.new('break')
+      command.after { command_interrupted.finalize }
+      execute command, true
     end
 
   end

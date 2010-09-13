@@ -33,9 +33,10 @@ describe Larynx::CallHandler do
     call.current_command.command.should == 'dummy'
   end
 
-  it "should send current command message on send_next_command" do
+  it "should send current command message on send_next_command if ready" do
     call.queue = []
     call.execute Larynx::Command.new('dummy')
+    call.state = :ready
     call.send_next_command
     call.sent_data.should == 'dummy'
   end
@@ -204,7 +205,7 @@ describe Larynx::CallHandler do
     end
 
     it "should not send next command if answer callback changed state" do
-      call.should_not_receive(:send_next_command)
+      call.should_not_receive(:execute)
       with_global_callback(:answer, lambda { call.state = :sending }) do
         answer_call
       end
@@ -249,6 +250,7 @@ describe Larynx::CallHandler do
 
     def run_command(interruptable=true)
       call.queue = []
+      call.state = :ready
       call.speak 'hello', :bargein => interruptable
       call.send_next_command
       call.send_response :execute

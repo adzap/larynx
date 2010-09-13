@@ -2,12 +2,11 @@ module Larynx
   class Command
     include Callbacks
     attr_reader :command
-    attr_accessor :interrupted
 
     define_callback :before, :after
 
     def initialize(command, params=nil, &block)
-      @command, @params, @callbacks = command, params, {}
+      @command, @params, @callbacks, @interrupted = command, params, {}, false
       after(&block) if block_given?
     end
 
@@ -19,6 +18,10 @@ module Larynx
       @command
     end
 
+    def interrupt!
+      @interrupted = true if interruptable?
+    end
+
     def interruptable?
       false
     end
@@ -28,11 +31,17 @@ module Larynx
     end
 
     def setup
-      fire_callback :before
+      unless @setup
+        @setup = true
+        fire_callback :before
+      end
     end
 
     def finalize
-      fire_callback :after
+      unless @finalized
+        @finalized = true
+        fire_callback :after
+      end
     end
   end
 

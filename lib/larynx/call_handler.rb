@@ -44,7 +44,7 @@ module Larynx
       log "Queued: #{command.name}"
       if immediately
         @queue.unshift command
-        send_next_command
+        send_next_command true
       else
         @queue << command
       end
@@ -56,7 +56,7 @@ module Larynx
         timer = @timers.delete(name)
         timer[1].call if timer[1]
         notify_observers :timed_out
-        send_next_command if @state == :ready
+        send_next_command
       }, block]
     end
 
@@ -64,7 +64,7 @@ module Larynx
       if timer = @timers[name]
         timer[0].cancel
         @timers.delete(name)
-        send_next_command if @state == :ready
+        send_next_command
       end
     end
 
@@ -80,7 +80,7 @@ module Larynx
           timer[1].call
         end
         @timers.delete(name)
-        send_next_command if @state == :ready
+        send_next_command
       end
     end
 
@@ -99,27 +99,23 @@ module Larynx
       case
       when @response.reply? && current_command.is_a?(CallCommand)
         log "Completed: #{current_command.name}"
-        finalize_command
         @state = :ready
+        finalize_command
         send_next_command
       when @response.answered?
         log 'Answered call'
-        finalize_command
         @state = :ready
+        finalize_command
         Larynx.fire_callback(:answer, self)
-        send_next_command if @state == :ready
+        send_next_command
       when @response.executing?
         log "Executing: #{current_command.name}"
         current_command.setup
         @state = :executing
       when @response.executed? && current_command
-        this_command = current_command
+        @state = :ready
         finalize_command
-        unless this_command.interrupted?
-          current_command.finalize if this_command.command == 'break'
-          @state = :ready
-          send_next_command
-        end
+        send_next_command
       when @response.dtmf?
         log "Button pressed: #{@response.body[:dtmf_digit]}"
         handle_dtmf
@@ -136,12 +132,11 @@ module Larynx
       @input << @response.body[:dtmf_digit]
       interrupt_command
       notify_observers :dtmf_received, @response.body[:dtmf_digit]
-      send_next_command if @state == :ready
+      send_next_command
     end
 
     def interrupt_command
       if @state == :executing && current_command.interruptable?
-        current_command.interrupted = true
         break!
       end
     end
@@ -157,8 +152,9 @@ module Larynx
       current_command.try(:interrupted?) ? next_command : current_command
     end
 
-    def send_next_command
-      if command = command_to_send
+    def send_next_command(force=false)
+      command = command_to_send
+      if command && (ready? || force)
         @state = :sending
         send_data command.to_s
       end
@@ -173,6 +169,10 @@ module Larynx
 
     def log(msg)
       LARYNX_LOGGER.info msg
+    end
+
+    def ready?
+      @state == :ready
     end
 
   end
