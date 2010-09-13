@@ -38,6 +38,10 @@ module Larynx
     :attempts => 3
   }
 
+  def self.setup
+    yield self if block_given?
+  end
+
   class << self
     include Callbacks
     define_callback :connect, :answer, :hungup
